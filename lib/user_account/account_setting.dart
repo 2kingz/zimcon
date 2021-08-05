@@ -120,9 +120,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
                               fit: BoxFit.cover,
                               image: NetworkImage(propic.isNotEmpty
                                   ? propic
-                                  : "http://" +
-                                      server +
-                                      "/ZimCon/UI/images/alias.jpg"))),
+                                  : server + "/ZimCon/UI/images/alias.jpg"))),
                     ),
                     Positioned(
                         bottom: 0,
@@ -134,9 +132,12 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
                               shape: BoxShape.circle,
                               border: Border.all(width: 4, color: Colors.white),
                               color: Colors.pinkAccent),
-                          child: Icon(
-                            Icons.edit,
-                            color: Colors.white,
+                          child: InkWell(
+                            onTap: () => bottomSheet(context),
+                            child: Icon(
+                              Icons.edit,
+                              color: Colors.white,
+                            ),
                           ),
                         )),
                   ],
@@ -343,6 +344,37 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     } catch (e) {
       print("Error Caught" + e.toString());
     }
+  }
+
+  Widget bottomSheet(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height / 4,
+      width: MediaQuery.of(context).size.width,
+      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      child: Column(
+        children: <Widget>[
+          Text(
+            "Choose Profile Photo",
+            style: TextStyle(fontSize: 20.0),
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          Row(
+            children: <Widget>[
+              FlatButton.icon(
+                  onPressed: () {},
+                  icon: Icon(Icons.camera),
+                  label: Text("Camera")),
+              FlatButton.icon(
+                  onPressed: () {},
+                  icon: Icon(Icons.image),
+                  label: Text("Gallery"))
+            ],
+          )
+        ],
+      ),
+    );
   }
 
   Widget buildTextField(

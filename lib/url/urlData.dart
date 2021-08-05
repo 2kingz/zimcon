@@ -1,4 +1,4 @@
-const String server = "http://192.168.43.222";
+const String server = "http://192.168.137.1";
 
 const String updateAdress = server + "/ZimCon/UI/images/alias.jpg";
 const String updatepass = server + "/ZimCon/UI/images/alias.jpg";
