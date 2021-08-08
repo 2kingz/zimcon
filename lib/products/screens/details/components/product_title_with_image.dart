@@ -53,7 +53,7 @@ class ProductTitleWithImage extends StatelessWidget {
                 child: Hero(
                   tag: "${product.id}",
                   child: Image.network(
-                    product.image!,
+                    product.image,
                     fit: BoxFit.fill,
                   ),
                 ),

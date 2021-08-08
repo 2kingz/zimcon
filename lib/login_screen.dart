@@ -36,7 +36,8 @@ class InitState extends State<LoginScreen> {
           SharedPreferences p = await SharedPreferences.getInstance();
 
           p.setString("id", data['message']['Id'].toString());
-          p.setString("propic", data['message']['pic'].toString());
+          p.setString(
+              "propic", server + "/" + data['message']['pic'].toString());
           p.setString("name", data['message']['Fname'].toString());
           p.setString("surname", data['message']['Lname'].toString());
           p.setString("phone", data['message']['Phone'].toString());

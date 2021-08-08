@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
-import 'package:zimcon/products/screens/details/components/add_to_cart.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'cart_counter.dart';
 

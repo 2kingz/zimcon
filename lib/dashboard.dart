@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zimcon/size_config.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:zimcon/utility/drawer/navigation_drawer.dart';
 import 'utility/griddashboard.dart';
@@ -15,6 +16,7 @@ class HomeState extends State<Home> {
   var name = "";
   var surname = "";
   var email = '';
+  var vendor = "";
 
   Future getUserInformation() async {
     SharedPreferences p = await SharedPreferences.getInstance();
@@ -23,6 +25,7 @@ class HomeState extends State<Home> {
       surname = p.getString('surname').toString();
       email = p.getString('email').toString();
       user = p.getString("id").toString();
+      vendor = p.getString("va").toString();
     });
     print(name + " " + surname);
   }
@@ -40,7 +43,23 @@ class HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig condi = new SizeConfig();
+    condi.init(context);
     return Scaffold(
+      floatingActionButton: vendor.contains("Yes")
+          ? FloatingActionButton(
+              elevation: 5,
+              backgroundColor: Colors.pink,
+              tooltip: "Vendor Dashboard",
+              splashColor: Colors.pinkAccent,
+              child: Icon(
+                Icons.admin_panel_settings,
+                color: Colors.white,
+              ),
+              isExtended: true,
+              onPressed: () {},
+            )
+          : null,
       drawer: NavigationDrawerWidget(),
       backgroundColor: Color(0xffFFFFFF),
       body: Container(

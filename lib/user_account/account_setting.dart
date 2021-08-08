@@ -1,6 +1,9 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:http/http.dart' as http;
@@ -12,6 +15,8 @@ class AccountSettingPage extends StatefulWidget {
 
 class _AccountSettingPageState extends State<AccountSettingPage> {
   bool isObsecurePassword = true, isLoading = false;
+  final ImagePicker picker = ImagePicker();
+  late File imagePath;
   String id = "",
       propic = "",
       name = "",
@@ -62,6 +67,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     setState(() {
       id = data.getString("id")!;
       propic = data.getString("propic")!;
+      print(propic);
       name = data.getString("name")!;
       surname = data.getString("surname")!;
       phone = data.getString("phone")!;
@@ -125,15 +131,21 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
                     Positioned(
                         bottom: 0,
                         right: 0,
-                        child: Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(width: 4, color: Colors.white),
-                              color: Colors.pinkAccent),
-                          child: InkWell(
-                            onTap: () => bottomSheet(context),
+                        child: InkWell(
+                          onTap: () => showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                    content: bottomSheet(context),
+                                  ),
+                              barrierDismissible: true),
+                          child: Container(
+                            height: 40,
+                            width: 40,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(width: 4, color: Colors.white),
+                                color: Colors.pinkAccent),
                             child: Icon(
                               Icons.edit,
                               color: Colors.white,
@@ -348,14 +360,14 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
 
   Widget bottomSheet(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height / 4,
-      width: MediaQuery.of(context).size.width,
-      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      height: 90,
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
       child: Column(
         children: <Widget>[
           Text(
-            "Choose Profile Photo",
-            style: TextStyle(fontSize: 20.0),
+            "Choose Image Source",
+            style: TextStyle(fontSize: 16.0),
           ),
           SizedBox(
             height: 20,
@@ -363,11 +375,15 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
           Row(
             children: <Widget>[
               FlatButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    galleryImage(ImageSource.camera);
+                  },
                   icon: Icon(Icons.camera),
                   label: Text("Camera")),
               FlatButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    galleryImage(ImageSource.gallery);
+                  },
                   icon: Icon(Icons.image),
                   label: Text("Gallery"))
             ],
@@ -467,6 +483,91 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     } catch (e) {
       print("Error Caught" + e.toString());
     }
+  }
+
+  galleryImage(ImageSource source) async {
+    final pickedFile = await picker.pickImage(source: source);
+    if (pickedFile != null) {
+      File? croppedFile = await ImageCropper.cropImage(
+          sourcePath: pickedFile.path,
+          maxHeight: 4160,
+          maxWidth: 4160,
+          compressFormat: ImageCompressFormat.jpg,
+          compressQuality: 100,
+          aspectRatioPresets: Platform.isAndroid
+              ? [
+                  CropAspectRatioPreset.square,
+                  CropAspectRatioPreset.ratio3x2,
+                  CropAspectRatioPreset.original,
+                  CropAspectRatioPreset.ratio4x3,
+                  CropAspectRatioPreset.ratio16x9,
+                ]
+              : [
+                  CropAspectRatioPreset.original,
+                  CropAspectRatioPreset.square,
+                  CropAspectRatioPreset.ratio3x2,
+                  CropAspectRatioPreset.ratio4x3,
+                  CropAspectRatioPreset.ratio5x3,
+                  CropAspectRatioPreset.ratio5x4,
+                  CropAspectRatioPreset.ratio7x5,
+                  CropAspectRatioPreset.ratio16x9
+                ],
+          androidUiSettings: AndroidUiSettings(
+              toolbarTitle: 'Cropper',
+              toolbarColor: Colors.pinkAccent,
+              toolbarWidgetColor: Colors.white,
+              initAspectRatio: CropAspectRatioPreset.original,
+              lockAspectRatio: false),
+          iosUiSettings: IOSUiSettings(
+            title: 'Cropper',
+          ));
+      if (croppedFile != null) {
+        setState(() {
+          imagePath = croppedFile;
+          uploadMyImage();
+        });
+      }
+    }
+  }
+
+  Future uploadImage() async {
+    final uri = Uri.parse("uri");
+    var request = http.MultipartRequest('POST', uri);
+    request.fields["user"] = user.toString();
+    var pic = await http.MultipartFile.fromPath("image", imagePath.path);
+    request.files.add(pic);
+    var response = await request.send();
+
+    if (response.statusCode == 200) {
+      print("Image is uploaded thank you....");
+    }
+  }
+
+  void uploadMyImage() {
+    String base64Image = base64Encode(imagePath.readAsBytesSync());
+    String fileName = imagePath.path.split("/").last;
+    final phpEndPoint = Uri.parse(uploadImg);
+    http.post(phpEndPoint, body: {
+      "image": base64Image,
+      "name": fileName,
+      "user": user.toString(),
+    }).then((res) async {
+      if (res.statusCode == 200) {
+        print(res.body);
+        var response = jsonDecode(res.body);
+        if (response['success'] == "1") {
+          SharedPreferences data = await SharedPreferences.getInstance();
+          data.setString("propic", server + response['pic'].toString());
+          data.reload();
+          this.checkVar();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(response['message'].toString())));
+        }
+      }
+    }).catchError((err) {
+      print(err);
+    });
   }
 }
 

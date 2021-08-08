@@ -41,6 +41,8 @@ class _GroceriesState extends State<Groceries> {
     if (users.contains(null) || users.length < 0 || isLoading) {
       return Center(
           child: CircularProgressIndicator(
+        color: Colors.pink,
+        backgroundColor: Colors.transparent,
         valueColor: new AlwaysStoppedAnimation<Color>(Colors.pink),
       ));
     }
@@ -72,10 +74,8 @@ class _GroceriesState extends State<Groceries> {
     });
     var url = Uri.parse(productsList);
     var response = await http.post(url, body: {"Category": productCategories});
-    // print(response.body);
     if (response.statusCode == 200) {
       var items = json.decode(response.body);
-      print(response.body);
       setState(() {
         users = items;
         isLoading = false;

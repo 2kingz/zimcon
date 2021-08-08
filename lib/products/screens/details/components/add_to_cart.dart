@@ -27,36 +27,40 @@ class _AddToCartState extends State<AddToCart> {
       padding: const EdgeInsets.symmetric(vertical: kDefultPaddin),
       child: Row(
         children: <Widget>[
-          Container(
-            margin: EdgeInsets.only(right: kDefultPaddin),
-            height: 50,
-            width: 58,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: widget.product.color,
-              ),
-            ),
-            child: IconButton(
-              icon: SvgPicture.asset(
-                "images/icons/add_to_cart.svg",
-                color: isInCart.toString().contains("yes")
-                    ? Colors.pink
-                    : widget.product.color,
-              ),
-              onPressed: () => addProductToCart(),
-            ),
-          ),
+          // Container(
+          //   margin: EdgeInsets.only(right: kDefultPaddin),
+          //   height: 50,
+          //   width: 58,
+          //   decoration: BoxDecoration(
+          //     borderRadius: BorderRadius.circular(18),
+          //     border: Border.all(
+          //       color: widget.product.color,
+          //     ),
+          //   ),
+          //   child: IconButton(
+          //     icon: SvgPicture.asset(
+          //       "images/icons/add_to_cart.svg",
+          //       color: isInCart.toString().contains("yes")
+          //           ? Colors.pink
+          //           : widget.product.color,
+          //     ),
+          //     onPressed: () => addProductToCart(),
+          //   ),
+          // ),
           Expanded(
             child: SizedBox(
               height: 50,
               child: FlatButton(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18)),
-                color: widget.product.color,
-                onPressed: () {},
+                color: isInCart.toString().contains("yes")
+                    ? Colors.pink
+                    : widget.product.color,
+                onPressed: () {
+                  addProductToCart();
+                },
                 child: Text(
-                  "Buy Now".toUpperCase(),
+                  "Add TO Cart".toUpperCase(),
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zimcon/cart/cart_screen.dart';
 import 'package:zimcon/companies/companies.dart';
 import 'package:zimcon/login_screen.dart';
+import 'package:zimcon/main.dart';
 import 'package:zimcon/products/groceries.dart';
 import 'package:zimcon/user_account/account_setting.dart';
 import 'package:zimcon/utility/drawer/data.dart';
@@ -172,30 +174,23 @@ class NavigationDrawerWidget extends StatelessWidget {
   }
 
   void selectedItem(BuildContext context, int index) {
+    Navigator.of(context).pop();
     final navigateTo = (page) =>
         Navigator.push(context, MaterialPageRoute(builder: (context) => page));
-    Navigator.of(context).pop();
     switch (index) {
       case 0:
         navigateTo(AccountSettingPage());
         break;
       case 1:
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Index : " + index.toString())));
-        navigateTo(CompaniesPages());
+        navigateTo(CartScreen());
         break;
       case 2:
         navigateTo(Groceries());
         break;
       case 4:
         logoutUser(context);
-        if (userLogOut == true) {
-          print("true");
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text("Logged out")));
-          Navigator.pop(context);
-          navigateTo(LoginScreen());
-        }
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => LoginScreen()));
         break;
       default:
     }

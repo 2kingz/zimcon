@@ -15,6 +15,8 @@ class Body extends StatefulWidget {
 
   @override
   _BodyState createState() => _BodyState();
+
+  void MyLovelyList() {}
 }
 
 class _BodyState extends State<Body> {
@@ -52,7 +54,7 @@ class _BodyState extends State<Body> {
                       Description(product: widget.product),
                       SizedBox(height: kDefultPaddin / 2),
                       CounterWithFavBtn(product: widget.product.id),
-                      SizedBox(height: kDefultPaddin / 2),
+                      SizedBox(height: kDefultPaddin / 4),
                       AddToCart(product: widget.product)
                     ],
                   ),
