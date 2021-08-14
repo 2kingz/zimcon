@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zimcon/products/constants.dart';
+import 'package:zimcon/products/groceries.dart';
+import 'package:zimcon/url/urlData.dart';
 
 // We need satefull widget for our categories
 
@@ -9,12 +11,6 @@ class Categories extends StatefulWidget {
 }
 
 class _CategoriesState extends State<Categories> {
-  List<String> categories = [
-    "Top Trending",
-    "Recently",
-    "Low Price",
-    "Local Products"
-  ];
   // By default our first item will be selected
   int selectedIndex = 0;
   @override
@@ -37,6 +33,8 @@ class _CategoriesState extends State<Categories> {
       onTap: () {
         setState(() {
           selectedIndex = index;
+          mySelectedIndex = selectedIndex;
+          Groceries().getMyProduct();
         });
       },
       child: Padding(

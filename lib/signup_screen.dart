@@ -19,6 +19,7 @@ class InitState extends State<SignUpScreen> {
 
   Future<void> doRegister() async {
     var url = Uri.parse(register);
+    print(url);
     print(fpassword.text.toString() + cpassword.text.toString());
     if (fpassword.text.toString() == cpassword.text.toString()) {
       final response = await http.post(url, body: {
@@ -37,8 +38,9 @@ class InitState extends State<SignUpScreen> {
           Navigator.pop(context);
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Error response from server...")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text("Error Response code " + response.statusCode.toString())));
       }
     } else {
       ScaffoldMessenger.of(context)
@@ -113,7 +115,8 @@ class InitState extends State<SignUpScreen> {
                           color: Colors.redAccent, height: 0, fontSize: 10),
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      errorText: isname ? 'Please enter your full name' : null,
+                      errorText:
+                          isname ? 'Please enter your name & surname' : null,
                       hintText: "Enter your name here.",
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none),
@@ -133,6 +136,7 @@ class InitState extends State<SignUpScreen> {
                     ]),
                 alignment: Alignment.center,
                 child: TextField(
+                  keyboardType: TextInputType.emailAddress,
                   controller: email,
                   cursorColor: Color(0xffF51167),
                   decoration: InputDecoration(
@@ -159,6 +163,7 @@ class InitState extends State<SignUpScreen> {
                     ]),
                 alignment: Alignment.center,
                 child: TextField(
+                  keyboardType: TextInputType.phone,
                   controller: phone,
                   cursorColor: Color(0xffF51167),
                   decoration: InputDecoration(
@@ -204,9 +209,7 @@ class InitState extends State<SignUpScreen> {
                           color: Colors.redAccent, height: 0, fontSize: 10),
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      errorText: isusername
-                          ? 'Please enter Username preferrebly'
-                          : null,
+                      errorText: isusername ? 'Please enter Username' : null,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none),
                 ),
@@ -225,6 +228,7 @@ class InitState extends State<SignUpScreen> {
                     ]),
                 alignment: Alignment.center,
                 child: TextField(
+                  obscureText: true,
                   controller: fpassword,
                   cursorColor: Color(0xffF51167),
                   decoration: InputDecoration(
@@ -256,6 +260,7 @@ class InitState extends State<SignUpScreen> {
                     ]),
                 alignment: Alignment.center,
                 child: TextField(
+                  obscureText: true,
                   controller: cpassword,
                   cursorColor: Color(0xffF51167),
                   decoration: InputDecoration(
@@ -266,6 +271,22 @@ class InitState extends State<SignUpScreen> {
                       hintText: "Retype your password",
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 0, bottom: 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("You are agree with "),
+                    GestureDetector(
+                      onTap: () => {Navigator.pop(context)},
+                      child: Text(
+                        "Terms and Conditions",
+                        style: TextStyle(color: Color(0xffF51167)),
+                      ),
+                    )
+                  ],
                 ),
               ),
               GestureDetector(

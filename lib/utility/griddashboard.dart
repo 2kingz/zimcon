@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:zimcon/company_view_products/models/companies.dart';
+import 'package:zimcon/hotels/hotel_pages.dart';
 import 'package:zimcon/products/groceries.dart';
 import 'package:zimcon/url/urlData.dart';
 
@@ -22,7 +24,7 @@ class _GridDashboardState extends State<GridDashboard> {
       subtitle: "Tailors, Stores",
       event: "2 Categories",
       img: "images/fashion.png",
-      onPress: Groceries(),
+      onPress: CompaiesProfiles(),
       cateTitle: "Fashion");
 
   Items item3 = new Items(
@@ -30,7 +32,7 @@ class _GridDashboardState extends State<GridDashboard> {
       subtitle: "Services, Furniture e.t.c",
       event: "3 Categories",
       img: "images/hardware.png",
-      onPress: Groceries(),
+      onPress: CompaiesProfiles(),
       cateTitle: "Hardware");
 
   Items item4 = new Items(
@@ -38,16 +40,16 @@ class _GridDashboardState extends State<GridDashboard> {
       subtitle: "Hotel, Lodges e.t.c",
       event: "",
       img: "images/lifestyle.png",
-      onPress: null,
+      onPress: HotelBookingPage(),
       cateTitle: "Hotel");
 
   Items item5 = new Items(
-      title: "Cars",
-      subtitle: "Mota chete, chete",
+      title: "Accesories",
+      subtitle: "Phones Laptops, Dstv",
       event: "4 Items",
       img: "images/cars.png",
-      onPress: null,
-      cateTitle: "Cars");
+      onPress: CompaiesProfiles(),
+      cateTitle: "Mobile & Accessories");
 
   Items item6 = new Items(
       title: "Ranto",

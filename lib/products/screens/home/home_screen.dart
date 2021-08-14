@@ -20,7 +20,7 @@ class HomeScreen extends StatelessWidget {
       leading: IconButton(
         icon: SvgPicture.asset("images/icons/back.svg"),
         onPressed: () {
-          Navigator.pop(context);
+          //Navigator.pop();
         },
       ),
       actions: <Widget>[

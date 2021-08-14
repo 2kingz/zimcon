@@ -21,7 +21,6 @@ class InitState extends State<SplashScreen> {
   startTime() async {
     SharedPreferences p = await SharedPreferences.getInstance();
     var email = p.getString("id");
-    print(email);
     var duration = Duration(seconds: 2);
     if (email == null || email == "") {
       return new Timer(duration, loginRoute);

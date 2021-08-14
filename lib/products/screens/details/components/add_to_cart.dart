@@ -1,7 +1,5 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:zimcon/products/constants.dart';
 import 'package:zimcon/products/models/Product.dart';
 import 'package:http/http.dart' as http;
@@ -97,7 +95,6 @@ class _AddToCartState extends State<AddToCart> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     checkCart();
   }

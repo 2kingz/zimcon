@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zimcon/adminDashboard/screens/admin.dart';
 import 'package:zimcon/size_config.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:zimcon/utility/drawer/navigation_drawer.dart';
 import 'utility/griddashboard.dart';
+import 'package:http/http.dart' as http;
 
 class Home extends StatefulWidget {
   @override
@@ -26,8 +30,28 @@ class HomeState extends State<Home> {
       email = p.getString('email').toString();
       user = p.getString("id").toString();
       vendor = p.getString("va").toString();
+      if (vendor.contains("Yes")) {
+        getVendorAccDetails();
+      }
     });
     print(name + " " + surname);
+  }
+
+  void getVendorAccDetails() async {
+    var uri = Uri.parse(getvendoracc);
+    var request = await http.post(uri, body: {"user": user.toString()});
+    if (request.statusCode == 200) {
+      var data = jsonDecode(request.body);
+      if (data["success"] == "0") {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(data['message'].toString())));
+      } else {
+        setState(() {
+          posterId = data['result']['Id'];
+          vendorCate = data['result']['Category'];
+        });
+      }
+    } else {}
   }
 
   @override
@@ -57,7 +81,10 @@ class HomeState extends State<Home> {
                 color: Colors.white,
               ),
               isExtended: true,
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => Admin()));
+              },
             )
           : null,
       drawer: NavigationDrawerWidget(),

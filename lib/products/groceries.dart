@@ -10,6 +10,10 @@ class Groceries extends StatefulWidget {
   // This widget is the root of your application.
   @override
   _GroceriesState createState() => _GroceriesState();
+
+  void getMyProduct() {
+    createState();
+  }
 }
 
 class _GroceriesState extends State<Groceries> {
@@ -17,7 +21,6 @@ class _GroceriesState extends State<Groceries> {
   List users = [];
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     setState(() {
       setProduct();
@@ -38,15 +41,32 @@ class _GroceriesState extends State<Groceries> {
   }
 
   Widget getBody() {
-    if (users.contains(null) || users.length < 0 || isLoading) {
+    if (users.contains(null) && users.length < 0 || isLoading) {
+      // return Center(
+      //     child: CircularProgressIndicator.adaptive(
+      //   backgroundColor: Colors.transparent,
+      //   valueColor: new AlwaysStoppedAnimation<Color>(Colors.pink),
+      // ));
       return Center(
-          child: CircularProgressIndicator(
-        color: Colors.pink,
-        backgroundColor: Colors.transparent,
-        valueColor: new AlwaysStoppedAnimation<Color>(Colors.pink),
-      ));
-    }
-    products.clear(); // So that it will not duplicate the products
+        child: Container(
+          color: Colors.white,
+          child: Center(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Nothing to display yet".toUpperCase(),
+                  style: TextStyle(color: Colors.pink, fontSize: 15.0),
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      products.clear();
+    } // So that it will not duplicate the products
     try {
       for (var i = 0; i < users.length; i++) {
         final item = users[i];
@@ -57,8 +77,8 @@ class _GroceriesState extends State<Groceries> {
             size: item["measure_size"] as String,
             description: item["description"],
             image: item["app_img"].toString().isEmpty
-                ? 'https://img.webmd.com/dtmcms/live/webmd/consumer_assets/site_images/articles/health_tools/portion_sizes_slideshow/getty_rm_photo_of_fish_meal_on_small_plate.jpg'
-                : item["app_img"],
+                ? 'product'
+                : server + item["app_img"],
             color: Color(0xFFAEAEAE)));
       }
     } catch (e) {
@@ -72,8 +92,10 @@ class _GroceriesState extends State<Groceries> {
     setState(() {
       isLoading = true;
     });
+    var mycate = categories[mySelectedIndex];
     var url = Uri.parse(productsList);
-    var response = await http.post(url, body: {"Category": productCategories});
+    var response = await http.post(url,
+        body: {"Category": productCategories, "mycate": mycate.toString()});
     if (response.statusCode == 200) {
       var items = json.decode(response.body);
       setState(() {

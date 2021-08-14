@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zimcon/adminDashboard/manger/vendor.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:http/http.dart' as http;
 
@@ -58,7 +59,6 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
   }
 
   checkVar() {
-    print("Gettting user data");
     fetchUser();
   }
 
@@ -67,7 +67,6 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     setState(() {
       id = data.getString("id")!;
       propic = data.getString("propic")!;
-      print(propic);
       name = data.getString("name")!;
       surname = data.getString("surname")!;
       phone = data.getString("phone")!;
@@ -125,8 +124,8 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
                           image: DecorationImage(
                               fit: BoxFit.cover,
                               image: NetworkImage(propic.isNotEmpty
-                                  ? propic
-                                  : server + "/ZimCon/UI/images/alias.jpg"))),
+                                  ? server + propic
+                                  : server + "ZimCon/UI/images/alias.jpg"))),
                     ),
                     Positioned(
                         bottom: 0,
@@ -157,7 +156,9 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
               ),
               headerText("General Information"),
               separator(),
-              SizedBox(height: 35),
+              SizedBox(
+                height: 35,
+              ),
               Center(
                 child: Container(
                   height: 320,
@@ -195,7 +196,9 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      updateMyBasicInfor();
+                    },
                     child: Text(
                       "UPDATE INFOR",
                       style: TextStyle(
@@ -321,6 +324,37 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
         ),
       );
 
+  updateMyBasicInfor() async {
+    try {
+      var url = Uri.parse(updateGen);
+      var request = await http.post(url, body: {
+        "user": user.toString(),
+        "name": fname.text,
+        "surname": lname.text,
+        "phone": phoneC.text,
+        "email": emailC.text
+      });
+
+      if (request.statusCode == 200) {
+        print("Response " + request.body);
+        var response = jsonDecode(request.body);
+        if (response['success'] == "1") {
+          SharedPreferences data = await SharedPreferences.getInstance();
+          data.setString("name", fname.text);
+          data.setString("surname", lname.text);
+          data.setString("phone", phoneC.text);
+          data.setString("email", emailC.text);
+          data.reload();
+          this.checkVar();
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response['message'].toString())));
+      }
+    } catch (e) {
+      print("Error Caught" + e.toString());
+    }
+  }
+
   updateMyPass() async {
     try {
       if (newPass.text == newPassCon.text) {
@@ -337,9 +371,9 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
             var response = jsonDecode(request.body);
             if (response['success'] == "1") {
               SharedPreferences data = await SharedPreferences.getInstance();
+              data.setString("va", response['text'].toString());
               data.reload();
               this.checkVar();
-              data.setString("va", response['text'].toString());
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(response['message'].toString())));
@@ -374,15 +408,17 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
           ),
           Row(
             children: <Widget>[
-              FlatButton.icon(
+              TextButton.icon(
                   onPressed: () {
                     galleryImage(ImageSource.camera);
+                    Navigator.pop(context);
                   },
                   icon: Icon(Icons.camera),
                   label: Text("Camera")),
-              FlatButton.icon(
+              TextButton.icon(
                   onPressed: () {
                     galleryImage(ImageSource.gallery);
+                    Navigator.pop(context);
                   },
                   icon: Icon(Icons.image),
                   label: Text("Gallery"))
@@ -446,17 +482,14 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
         var response = jsonDecode(request.body);
         if (response['success'] == "1") {
           SharedPreferences data = await SharedPreferences.getInstance();
-          data.reload();
-          this.checkVar();
           data.setString("street", house.text);
           data.setString("loc", location.text);
           data.setString("city", cityC.text);
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(response['message'].toString())));
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(response['message'].toString())));
+          data.reload();
+          this.checkVar();
         }
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response['message'].toString())));
       }
     } catch (e) {
       print("Error Caught" + e.toString());
@@ -469,19 +502,26 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
       var request = await http
           .post(url, body: {"user": id.toString(), "cmd": va.toString()});
       if (request.statusCode == 200) {
+        print(request.body);
         var response = jsonDecode(request.body);
         if (response['success'] == "1") {
           SharedPreferences data = await SharedPreferences.getInstance();
+          data.setString("va", response['text'].toString());
           data.reload();
           this.checkVar();
-          data.setString("va", response['text'].toString());
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(response['message'].toString())));
+          if (response['text'].toString().toLowerCase() == "yes") {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => ManageVendorAcc()));
+          }
         }
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content:
+              Text(response['message'] + "\n Now Restart The application."),
+        ));
       }
     } catch (e) {
-      print("Error Caught" + e.toString());
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("ERROR : " + e.toString())));
     }
   }
 
@@ -490,10 +530,9 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     if (pickedFile != null) {
       File? croppedFile = await ImageCropper.cropImage(
           sourcePath: pickedFile.path,
-          maxHeight: 4160,
-          maxWidth: 4160,
+          maxHeight: 1028,
+          maxWidth: 1028,
           compressFormat: ImageCompressFormat.jpg,
-          compressQuality: 100,
           aspectRatioPresets: Platform.isAndroid
               ? [
                   CropAspectRatioPreset.square,
@@ -530,44 +569,34 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     }
   }
 
-  Future uploadImage() async {
-    final uri = Uri.parse("uri");
-    var request = http.MultipartRequest('POST', uri);
-    request.fields["user"] = user.toString();
-    var pic = await http.MultipartFile.fromPath("image", imagePath.path);
-    request.files.add(pic);
-    var response = await request.send();
-
-    if (response.statusCode == 200) {
-      print("Image is uploaded thank you....");
-    }
-  }
-
-  void uploadMyImage() {
+  Future<void> uploadMyImage() async {
     String base64Image = base64Encode(imagePath.readAsBytesSync());
     String fileName = imagePath.path.split("/").last;
-    final phpEndPoint = Uri.parse(uploadImg);
-    http.post(phpEndPoint, body: {
-      "image": base64Image,
-      "name": fileName,
-      "user": user.toString(),
-    }).then((res) async {
+    try {
+      final phpEndPoint = Uri.parse(uploadImg);
+      var res = await http.post(phpEndPoint, body: {
+        "image": base64Image,
+        "name": fileName,
+        "user": user.toString(),
+      });
       if (res.statusCode == 200) {
-        print(res.body);
         var response = jsonDecode(res.body);
         if (response['success'] == "1") {
           SharedPreferences data = await SharedPreferences.getInstance();
-          data.setString("propic", server + response['pic'].toString());
+          data.setString("propic", response['pic'].toString());
           data.reload();
           this.checkVar();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("Image is uploaded thank you.".toString())));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(response['message'].toString())));
         }
       }
-    }).catchError((err) {
-      print(err);
-    });
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("ERROR : " + e.toString())));
+    }
   }
 }
 

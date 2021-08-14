@@ -16,7 +16,7 @@ class LoginScreen extends StatefulWidget {
 class InitState extends State<LoginScreen> {
   TextEditingController username = new TextEditingController();
   TextEditingController password = new TextEditingController();
-  bool _error_user = false, _pass_erro = false;
+  bool errorUser = false, passErro = false;
 
   Future<void> login() async {
     try {
@@ -26,7 +26,6 @@ class InitState extends State<LoginScreen> {
         "pass": password.text,
       });
       if (response.statusCode == 200) {
-        print(response.body);
         var data = jsonDecode(response.body);
         if (data['success'] == "4") {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -34,10 +33,8 @@ class InitState extends State<LoginScreen> {
                   "Logged in : " + data['message']['Userrname'].toString())));
           //craeting a session
           SharedPreferences p = await SharedPreferences.getInstance();
-
           p.setString("id", data['message']['Id'].toString());
-          p.setString(
-              "propic", server + "/" + data['message']['pic'].toString());
+          p.setString("propic", data['message']['pic'].toString());
           p.setString("name", data['message']['Fname'].toString());
           p.setString("surname", data['message']['Lname'].toString());
           p.setString("phone", data['message']['Phone'].toString());
@@ -132,7 +129,7 @@ class InitState extends State<LoginScreen> {
                 cursorColor: Color(0xffF51167),
                 decoration: InputDecoration(
                     icon: Icon(
-                      Icons.email,
+                      Icons.verified_user_outlined,
                       color: Color(0xffF51167),
                     ),
                     hintText: "Enter email",
@@ -140,7 +137,7 @@ class InitState extends State<LoginScreen> {
                         color: Colors.redAccent, height: 0, fontSize: 10),
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
-                    errorText: _error_user ? 'Please enter a Username' : null,
+                    errorText: errorUser ? 'Please enter a Username' : null,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none),
               ),
@@ -171,7 +168,7 @@ class InitState extends State<LoginScreen> {
                     focusedErrorBorder: InputBorder.none,
                     errorStyle: TextStyle(
                         color: Colors.redAccent, height: 0, fontSize: 10),
-                    errorText: _pass_erro ? 'Please enter your password' : null,
+                    errorText: passErro ? 'Please enter your password' : null,
                     hintText: "Enter your password",
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none),
@@ -190,13 +187,9 @@ class InitState extends State<LoginScreen> {
             TextButton(
               onPressed: () => {
                 setState(() {
-                  username.text.isEmpty
-                      ? _error_user = true
-                      : _error_user = false;
-                  password.text.isEmpty
-                      ? _pass_erro = true
-                      : _pass_erro = false;
-                  if (_error_user == true || _pass_erro == true) {
+                  username.text.isEmpty ? errorUser = true : errorUser = false;
+                  password.text.isEmpty ? passErro = true : passErro = false;
+                  if (errorUser == true || passErro == true) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text("Fill the required fields pass")));
                   } else {
