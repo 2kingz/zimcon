@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -23,15 +25,23 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
   String imageLnk = "";
   var valueChoose;
   String valueChoose2 = '';
-  List listItem = [];
+  List mYlistItem = [];
+
+  Timer? _timer;
   @override
   void initState() {
     super.initState();
+    EasyLoading.addStatusCallback((status) {
+      if (status == EasyLoadingStatus.dismiss) {
+        _timer?.cancel();
+      }
+    });
     getVendorAccDetails();
     getGeatecoriies();
   }
 
   getGeatecoriies() async {
+    EasyLoading.show(status: "Please wait...");
     var uri = Uri.parse(getCateList);
     var request = await http.post(uri);
     print(request.body);
@@ -39,24 +49,26 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
       var data = jsonDecode(request.body);
       if (data != null) {
         List items = data;
-        listItem.clear();
+        mYlistItem.clear();
         setState(() {
+          EasyLoading.showSuccess("Great Done!");
           for (var i = 0; i < items.length; i++) {
-            listItem.add(items[i]["Category_Name"]);
+            mYlistItem.add(items[i]["Category_Name"]);
           }
         });
       }
     }
+    EasyLoading.dismiss();
   }
 
   void getVendorAccDetails() async {
+    EasyLoading.show(status: "Hold a sec!");
     var uri = Uri.parse(getvendoracc);
     var request = await http.post(uri, body: {"user": user.toString()});
     if (request.statusCode == 200) {
       var data = jsonDecode(request.body);
       if (data["success"] == "0") {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(data['message'].toString())));
+        EasyLoading.show(status: data['message']);
       } else {
         setState(() {
           name.text = data['result']['Name'];
@@ -67,6 +79,7 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
         });
       }
     } else {}
+    EasyLoading.dismiss();
   }
 
   @override
@@ -167,7 +180,7 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
                           valueChoose2 = valueChoose;
                         });
                       },
-                      items: listItem.map((valueItem) {
+                      items: mYlistItem.map((valueItem) {
                         return DropdownMenuItem(
                           value: valueItem,
                           child: Text(valueItem),
@@ -333,6 +346,7 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
   }
 
   void upload() {
+    EasyLoading.show(status: "Please wait...");
     String base64Image = base64Encode(imagePath!.readAsBytesSync());
     String fileName = imagePath!.path.split("/").last;
     final phpEndPoint = Uri.parse(sendVendorBasic);
@@ -347,11 +361,9 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
         print(res.body);
         var response = jsonDecode(res.body);
         if (response['success'] == "1") {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("Image is uploaded thank you....".toString())));
+          EasyLoading.showToast("File uploaded");
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(response['message'].toString())));
+          EasyLoading.show(status: response['message'].toString());
         }
         getVendorAccDetails();
         File mia = new File(imagePath!.path);
@@ -360,9 +372,11 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
     }).catchError((err) {
       print(err);
     });
+    EasyLoading.dismiss();
   }
 
   void uploadInfor() {
+    EasyLoading.show(status: "Please wait.");
     http.post(Uri.parse(sendVendorBasic), body: {
       "user": user.toString(),
       "name": name.text,
@@ -378,12 +392,12 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
             getVendorAccDetails();
           });
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response['message'].toString())));
+        EasyLoading.showToast(response['message']);
       }
     }).catchError((err) {
       print(err);
     });
+    EasyLoading.dismiss();
   }
 
   myImage() {

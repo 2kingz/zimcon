@@ -5,28 +5,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:zimcon/adminDashboard/db/MyProductsData.dart';
+import 'package:zimcon/company_view_products/models/network_image.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:http/http.dart' as http;
 
-class AddProduct extends StatefulWidget {
-  const AddProduct({Key? key}) : super(key: key);
+class EditProduct extends StatefulWidget {
+  final MyProducts myProduct;
+  const EditProduct({Key? key, required this.myProduct}) : super(key: key);
 
   @override
-  _AddProductState createState() => _AddProductState();
+  _EditProductState createState() => _EditProductState();
 }
 
-class _AddProductState extends State<AddProduct> {
+class _EditProductState extends State<EditProduct> {
   final ImagePicker picker = ImagePicker();
   File? imagePath;
-  TextEditingController item = new TextEditingController();
   var valueChoose;
 
   TextEditingController description = new TextEditingController();
   TextEditingController price = new TextEditingController();
   TextEditingController quantity = new TextEditingController();
+  TextEditingController item = new TextEditingController();
   bool isItem = false, isPrice = false, isQuantity = false;
-  Timer? _timer;
   var descriptionm;
+  late String myProductimage, producatCate;
+  late String productId;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -36,29 +41,18 @@ class _AddProductState extends State<AddProduct> {
         _timer?.cancel();
       }
     });
-    getGeatecoriies();
+    setState(() {
+      getTheProductDetails();
+    });
   }
 
-  getGeatecoriies() async {
-    EasyLoading.show(status: 'Please wait loading...');
-    var uri = Uri.parse(categoryUrl);
-    var request =
-        await http.post(uri, body: {"vendor_cate": vendorCate.toString()});
-    print(request.body);
-    if (request.statusCode == 200) {
-      var data = jsonDecode(request.body);
-      if (data != null) {
-        List items = data;
-        listItem.clear();
-        setState(() {
-          for (var i = 0; i < items.length; i++) {
-            listItem.add(items[i]["Category_Name"]);
-          }
-          EasyLoading.showSuccess('Great Success!');
-        });
-      }
-    }
-    EasyLoading.dismiss();
+  getTheProductDetails() {
+    productId = widget.myProduct.id!;
+    item.text = widget.myProduct.title!;
+    price.text = widget.myProduct.price!;
+    quantity.text = widget.myProduct.qty;
+    myProductimage = widget.myProduct.image;
+    producatCate = widget.myProduct.cateGory;
   }
 
   @override
@@ -130,7 +124,9 @@ class _AddProductState extends State<AddProduct> {
                 buildTextField("Price", "Item price", price, isPrice),
                 buildTextField("Quantity", "Item qty", quantity, isQuantity),
                 DropdownButton(
-                    hint: Text("Select Item Category"),
+                    hint: Text(producatCate.isEmpty
+                        ? "Select Item Category"
+                        : producatCate),
                     isDense: false,
                     isExpanded: true,
                     icon: Icon(Icons.arrow_drop_down),
@@ -140,6 +136,7 @@ class _AddProductState extends State<AddProduct> {
                     onChanged: (newValue) {
                       setState(() {
                         valueChoose = newValue;
+                        producatCate = valueChoose;
                       });
                     },
                     items: listItem.map((valueItem) {
@@ -189,7 +186,7 @@ class _AddProductState extends State<AddProduct> {
                     ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          if (imagePath != null) {
+                          if (imagePath != null || myProductimage.isNotEmpty) {
                             item.text.isEmpty ? isItem = true : isItem = false;
                             price.text.isEmpty
                                 ? isPrice = true
@@ -205,7 +202,7 @@ class _AddProductState extends State<AddProduct> {
                                       content: Text(
                                           "Please fill the blank fields.")));
                             } else {
-                              uploadProduct();
+                              uPdateProduct();
                             }
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -214,7 +211,7 @@ class _AddProductState extends State<AddProduct> {
                         });
                       },
                       child: Text(
-                        "Upload",
+                        "Save",
                         style: TextStyle(
                             fontSize: 15,
                             letterSpacing: 2,
@@ -237,39 +234,58 @@ class _AddProductState extends State<AddProduct> {
     );
   }
 
-  void uploadProduct() {
-    EasyLoading.show(status: "Uploading product...");
-    print(description.text.toString());
+  void uploadImage() {
+    EasyLoading.show(status: "Please wait uploading image");
     String base64Image = base64Encode(imagePath!.readAsBytesSync());
     String fileName = imagePath!.path.split("/").last;
-    final phpEndPoint = Uri.parse(upbloadProduct);
+    final phpEndPoint = Uri.parse(updateProduct);
     http.post(phpEndPoint, body: {
+      "product": productId,
       "image": base64Image,
       "name": fileName,
-      "user": posterId.toString(),
-      "item": item.text,
-      "price": price.text,
-      "qty": quantity.text,
-      "description": description.text,
-      "category": valueChoose,
+      "oldImage": myProductimage,
     }).then((res) {
       if (res.statusCode == 200) {
         print(res.body);
         var response = jsonDecode(res.body);
         if (response['success'] == "1") {
-          EasyLoading.showSuccess("Done");
           setState(() {
+            imagePath!.delete();
             imagePath = null;
             fileName = "";
+          });
+        }
+        EasyLoading.showSuccess(response['message'].toString());
+      }
+    }).catchError((err) {
+      print(err);
+    });
+    EasyLoading.dismiss();
+  }
+
+  void uPdateProduct() {
+    EasyLoading.show(status: "Please wait saving changes");
+    final phpEndPoint = Uri.parse(updateProduct);
+    http.post(phpEndPoint, body: {
+      "product": productId,
+      "item": item.text,
+      "price": price.text,
+      "qty": quantity.text,
+      "description": description.text,
+      "category": producatCate,
+    }).then((res) {
+      if (res.statusCode == 200) {
+        print(res.body);
+        var response = jsonDecode(res.body);
+        if (response['success'] == "1") {
+          setState(() {
             item.text = "";
             price.text = "";
             quantity.text = "";
             description.text = "";
           });
-          getGeatecoriies();
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response['message'].toString())));
+        EasyLoading.showSuccess(response['message']);
       }
     }).catchError((err) {
       print(err);
@@ -393,6 +409,6 @@ class _AddProductState extends State<AddProduct> {
     if (imagePath != null) {
       return FileImage(imagePath!);
     }
-    return AssetImage("images/groceries.png");
+    return PNetworkImage(myProductimage);
   }
 }

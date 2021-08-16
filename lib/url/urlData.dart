@@ -29,16 +29,21 @@ String getProducturl = server + "API/zimcon/productQtyinCart.php";
 String subbmitOrdeUri = server + "API/zimcon/cart/place_order.php";
 String categoryUrl = server + "API/zimcon/vendor/get_categories.php";
 String upbloadProduct = server + "API/zimcon/vendor/upload.php";
+String updateProduct = server + "API/zimcon/vendor/update_product.php";
 
 String getCateList = server + "API/zimcon/vendor/get_comapny_category.php";
 String getPagesList = server + "API/zimcon/pages/getCompanies.php";
 String getvendoracc = server + "API/zimcon/vendor/getVendorAcc.php";
 String sendVendorBasic = server + "API/zimcon/vendor/upload_and_update.php";
 
+String getSummeryurl = server + "API/zimcon/vendor/getSummeryurl.php";
+String getVendorProducts = server + "API/zimcon/vendor/products.php";
+
 String getPageProducts = server + "API/zimcon/pages/getProducts.php";
 
 int cartItemnumber = 1;
 int mySelectedIndex = 0;
+List<String> listItem = [];
 List<String> categories = [
   "Top Trending",
   "Recently",

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,9 +49,16 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
   TextEditingController location = new TextEditingController();
   TextEditingController cityC = new TextEditingController();
 
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
+    EasyLoading.addStatusCallback((status) {
+      if (status == EasyLoadingStatus.dismiss) {
+        _timer?.cancel();
+      }
+    });
     this.checkVar();
   }
 
@@ -63,6 +72,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
   }
 
   Future<void> fetchUser() async {
+    EasyLoading.showInfo("Loading your infor");
     SharedPreferences data = await SharedPreferences.getInstance();
     setState(() {
       id = data.getString("id")!;
@@ -82,6 +92,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
       vcode = data.getString("vcode")!;
       vendorEndAgre = data.getString("va")!;
     });
+    EasyLoading.dismiss();
   }
 
   @override
@@ -326,6 +337,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
 
   updateMyBasicInfor() async {
     try {
+      EasyLoading.show(status: "Please wait.");
       var url = Uri.parse(updateGen);
       var request = await http.post(url, body: {
         "user": user.toString(),
@@ -346,6 +358,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
           data.setString("email", emailC.text);
           data.reload();
           this.checkVar();
+          EasyLoading.showSuccess("Done!");
         }
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(response['message'].toString())));
@@ -353,9 +366,11 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     } catch (e) {
       print("Error Caught" + e.toString());
     }
+    EasyLoading.dismiss();
   }
 
   updateMyPass() async {
+    EasyLoading.show(status: "Please wait.");
     try {
       if (newPass.text == newPassCon.text) {
         if (newPass.text.isNotEmpty == false &&
@@ -370,6 +385,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
           if (request.statusCode == 200) {
             var response = jsonDecode(request.body);
             if (response['success'] == "1") {
+              EasyLoading.showSuccess("Great Success!");
               SharedPreferences data = await SharedPreferences.getInstance();
               data.setString("va", response['text'].toString());
               data.reload();
@@ -390,6 +406,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     } catch (e) {
       print("Error Caught" + e.toString());
     }
+    EasyLoading.dismiss();
   }
 
   Widget bottomSheet(BuildContext context) {
@@ -470,6 +487,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
   }
 
   finalUpdate() async {
+    EasyLoading.show(status: "Please wait.");
     try {
       var url = Uri.parse(updateAddress);
       var request = await http.post(url, body: {
@@ -481,6 +499,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
       if (request.statusCode == 200) {
         var response = jsonDecode(request.body);
         if (response['success'] == "1") {
+          EasyLoading.showSuccess("Great Success");
           SharedPreferences data = await SharedPreferences.getInstance();
           data.setString("street", house.text);
           data.setString("loc", location.text);
@@ -494,9 +513,11 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     } catch (e) {
       print("Error Caught" + e.toString());
     }
+    EasyLoading.dismiss();
   }
 
   vendorAccountMng(var va) async {
+    EasyLoading.show(status: "Please wait while we make it up to you");
     try {
       var url = Uri.parse(updateVendor);
       var request = await http
@@ -514,15 +535,14 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
                 MaterialPageRoute(builder: (context) => ManageVendorAcc()));
           }
         }
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content:
-              Text(response['message'] + "\n Now Restart The application."),
-        ));
+        EasyLoading.showSuccess(
+            response['message'] + "\n Now Restart The application.");
       }
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("ERROR : " + e.toString())));
     }
+    EasyLoading.dismiss();
   }
 
   galleryImage(ImageSource source) async {
@@ -570,6 +590,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
   }
 
   Future<void> uploadMyImage() async {
+    EasyLoading.show(status: "Uploading Image");
     String base64Image = base64Encode(imagePath.readAsBytesSync());
     String fileName = imagePath.path.split("/").last;
     try {
@@ -586,16 +607,14 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
           data.setString("propic", response['pic'].toString());
           data.reload();
           this.checkVar();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("Image is uploaded thank you.".toString())));
+          EasyLoading.showSuccess("Image is uploaded thank you.");
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(response['message'].toString())));
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("ERROR : " + e.toString())));
+      EasyLoading.showToast("ERROR : " + e.toString());
     }
   }
 }

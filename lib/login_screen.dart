@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 //import 'package:zimcon/dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,8 +20,21 @@ class InitState extends State<LoginScreen> {
   TextEditingController password = new TextEditingController();
   bool errorUser = false, passErro = false;
 
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    EasyLoading.addStatusCallback((status) {
+      if (status == EasyLoadingStatus.dismiss) {
+        _timer?.cancel();
+      }
+    });
+  }
+
   Future<void> login() async {
     try {
+      EasyLoading.show(status: "Please wait.");
       var url = Uri.parse(loginUrl);
       final response = await http.post(url, body: {
         "username": username.text,
@@ -52,6 +67,7 @@ class InitState extends State<LoginScreen> {
           p.setString("vcode", data['message']['Vendor_code'].toString());
           p.setString("va", data['message']['Vendor_Agreement'].toString());
           p.commit();
+          EasyLoading.showSuccess("Great Done!");
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (context) => Home()));
         } else {
@@ -66,6 +82,7 @@ class InitState extends State<LoginScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Error : " + e.toString())));
     }
+    EasyLoading.dismiss();
   }
 
   @override

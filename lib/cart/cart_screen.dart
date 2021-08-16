@@ -58,8 +58,10 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
       );
+    } else {
+      cartItems.clear();
     }
-    cartItems.clear(); // So that it will not duplicate the products
+    // So that it will not duplicate the products
     try {
       double sum = 0;
       for (var i = 0; i < items.length; i++) {
@@ -69,7 +71,7 @@ class _CartScreenState extends State<CartScreen> {
             numOfItem: cartItem["Qty"],
             id: cartItem["Id"],
             price: cartItem["price"],
-            img: cartItem["Image"],
+            img: server + cartItem["Image"],
             totalPrice: cartItem["TPrice"]));
         sum += double.parse(cartItem["TPrice"]);
       }

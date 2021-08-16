@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
 import 'package:zimcon/url/urlData.dart';
 
@@ -17,7 +19,20 @@ class InitState extends State<SignUpScreen> {
   TextEditingController cpassword = new TextEditingController();
   bool isname = false, isPhone = false, isusername = false, ispass = false;
 
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    EasyLoading.addStatusCallback((status) {
+      if (status == EasyLoadingStatus.dismiss) {
+        _timer?.cancel();
+      }
+    });
+  }
+
   Future<void> doRegister() async {
+    EasyLoading.show(status: "Please wait...");
     var url = Uri.parse(register);
     print(url);
     print(fpassword.text.toString() + cpassword.text.toString());
@@ -35,6 +50,7 @@ class InitState extends State<SignUpScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text("Response : " + data['message'].toString())));
         if (data['success'].toString() == "1") {
+          EasyLoading.showToast("Gongrats you're now a member");
           Navigator.pop(context);
         }
       } else {
@@ -46,6 +62,7 @@ class InitState extends State<SignUpScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("password do not match...")));
     }
+    EasyLoading.dismiss();
   }
 
   @override

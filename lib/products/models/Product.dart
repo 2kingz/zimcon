@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class Product {
   final String? id, size, title, description, price;
   String image;

@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:zimcon/adminDashboard/manger/Myproducts.dart';
 import 'package:zimcon/adminDashboard/manger/addProduct.dart';
 import 'package:zimcon/adminDashboard/manger/vendor.dart';
-import '../db/category.dart';
-import '../db/brand.dart';
+import 'package:zimcon/url/urlData.dart';
+import 'package:http/http.dart' as http;
 
 enum Page { dashboard, manage }
 
@@ -18,12 +22,78 @@ class _AdminState extends State<Admin> {
   MaterialColor notActive = Colors.grey;
   TextEditingController categoryController = TextEditingController();
   TextEditingController brandController = TextEditingController();
-  GlobalKey<FormState> _categoryFormKey = GlobalKey();
   GlobalKey<FormState> _brandFormKey = GlobalKey();
-  BrandService _brandService = BrandService();
-  CategoryService _categoryService = CategoryService();
 
   TextEditingController item = TextEditingController();
+
+  String soldProductsNumber = "0";
+
+  String ordersNumber = "0";
+
+  String numberOfReturns = "0";
+
+  String numberOfProducts = "0";
+
+  String generatedRevenue = "0.00";
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    EasyLoading.addStatusCallback((status) {
+      if (status == EasyLoadingStatus.dismiss) {
+        _timer?.cancel();
+      }
+    });
+  }
+
+  getGeatecoriies() async {
+    EasyLoading.show(status: 'Please hold a sec...');
+    var uri = Uri.parse(categoryUrl);
+    var request =
+        await http.post(uri, body: {"vendor_cate": vendorCate.toString()});
+    print(request.body);
+    if (request.statusCode == 200) {
+      var data = jsonDecode(request.body);
+      if (data != null) {
+        List items = data;
+        listItem.clear();
+        setState(() {
+          EasyLoading.showSuccess('Done');
+          for (var i = 0; i < items.length; i++) {
+            listItem.add(items[i]["Category_Name"]);
+          }
+        });
+      }
+    }
+    EasyLoading.dismiss();
+  }
+
+  void getSimpleSummery() async {
+    EasyLoading.show(status: 'Please wait loading...');
+    var url = Uri.parse(getSummeryurl);
+    var request = await http.post(url, body: {"user": user.toString()});
+    print(request.body);
+    if (request.statusCode == 200) {
+      var data = jsonDecode(request.body);
+      EasyLoading.showSuccess('Great Success!');
+      setState(() {
+        getSimpleSummery();
+        ordersNumber = data['ordersCal'];
+        numberOfProducts = data['ProductCal'];
+        generatedRevenue = data['revenueCal'];
+        EasyLoading.dismiss();
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          duration: Duration(seconds: 2),
+          action: SnackBarAction(
+            label: "Reload",
+            onPressed: () => getSimpleSummery(),
+          ),
+          content: Text("Response :" + request.statusCode.toString())));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +106,7 @@ class _AdminState extends State<Admin> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Expanded(
-                  child: FlatButton.icon(
+                  child: TextButton.icon(
                       onPressed: () {
                         setState(() => _selectedPage = Page.dashboard);
                       },
@@ -48,7 +118,7 @@ class _AdminState extends State<Admin> {
                       ),
                       label: Text('Dashboard'))),
               Expanded(
-                  child: FlatButton.icon(
+                  child: TextButton.icon(
                       onPressed: () {
                         setState(() => _selectedPage = Page.manage);
                       },
@@ -79,7 +149,7 @@ class _AdminState extends State<Admin> {
                   size: 30.0,
                   color: Colors.green,
                 ),
-                label: Text('12,000',
+                label: Text('\$$generatedRevenue',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 30.0, color: Colors.green)),
               ),
@@ -106,7 +176,7 @@ class _AdminState extends State<Admin> {
                               ),
                               label: Text("Products")),
                           subtitle: Text(
-                            '120',
+                            numberOfProducts,
                             textAlign: TextAlign.center,
                             style: TextStyle(color: active, fontSize: 35.0),
                           )),
@@ -121,7 +191,7 @@ class _AdminState extends State<Admin> {
                               icon: Icon(Icons.tag_faces),
                               label: Text("Sold")),
                           subtitle: Text(
-                            '13',
+                            soldProductsNumber,
                             textAlign: TextAlign.center,
                             style: TextStyle(color: active, fontSize: 35.0),
                           )),
@@ -136,7 +206,7 @@ class _AdminState extends State<Admin> {
                               icon: Icon(Icons.shopping_cart),
                               label: Text("Orders")),
                           subtitle: Text(
-                            '5',
+                            ordersNumber,
                             textAlign: TextAlign.center,
                             style: TextStyle(color: active, fontSize: 35.0),
                           )),
@@ -151,7 +221,7 @@ class _AdminState extends State<Admin> {
                               icon: Icon(Icons.close),
                               label: Text("Return")),
                           subtitle: Text(
-                            '0',
+                            numberOfReturns,
                             textAlign: TextAlign.center,
                             style: TextStyle(color: active, fontSize: 35.0),
                           )),
@@ -238,9 +308,7 @@ class _AdminState extends State<Admin> {
       actions: <Widget>[
         FlatButton(
             onPressed: () {
-              if (brandController.text.isNotEmpty) {
-                _brandService.createBrand(brandController.text);
-              }
+              if (brandController.text.isNotEmpty) {}
               print('brand added');
 
               Navigator.pop(context);
