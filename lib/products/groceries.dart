@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:zimcon/products/models/Product.dart';
 import 'package:zimcon/url/urlData.dart';
 
@@ -42,11 +43,6 @@ class _GroceriesState extends State<Groceries> {
 
   Widget getBody() {
     if (users.contains(null) && users.length < 0 || isLoading) {
-      // return Center(
-      //     child: CircularProgressIndicator.adaptive(
-      //   backgroundColor: Colors.transparent,
-      //   valueColor: new AlwaysStoppedAnimation<Color>(Colors.pink),
-      // ));
       return Center(
         child: Container(
           color: Colors.white,
@@ -56,7 +52,8 @@ class _GroceriesState extends State<Groceries> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Nothing to display yet".toUpperCase(),
+                  "Nothing to display yet \n Check your internet Connection"
+                      .toUpperCase(),
                   style: TextStyle(color: Colors.pink, fontSize: 15.0),
                 )
               ],
@@ -66,26 +63,36 @@ class _GroceriesState extends State<Groceries> {
       );
     } else {
       products.clear();
-    } // So that it will not duplicate the products
-    try {
-      for (var i = 0; i < users.length; i++) {
-        final item = users[i];
-        products.add(Product(
-            id: item["Id"] as String,
-            title: item["Name"] as String,
-            price: item["Price"] as String,
-            size: item["measure_size"] as String,
-            description: item["description"],
-            image: item["app_img"].toString().isEmpty
-                ? 'product'
-                : server + item["app_img"],
-            color: Color(0xFFAEAEAE)));
+      try {
+        for (var i = 0; i < users.length; i++) {
+          final item = users[i];
+          products.add(Product(
+              id: item["Id"] as String,
+              title: item["Name"] as String,
+              price: item["Price"] as String,
+              size: item["measure_size"] as String,
+              description: item["description"],
+              image: item["app_img"].toString().isEmpty
+                  ? 'product'
+                  : server + item["app_img"],
+              color: Colors.grey[500]));
+        }
+      } catch (e) {
+        print("ERROR : " + e.toString());
       }
-    } catch (e) {
-      print("error : " + e.toString());
-    }
+    } // So that it will not duplicate the products
 
     return HomeScreen();
+  }
+
+  getProductColor(String imgLink) async {
+    final PaletteGenerator generator = await PaletteGenerator.fromImageProvider(
+        NetworkImage(imgLink),
+        size: Size(200, 200));
+    var color = generator.darkMutedColor == null
+        ? generator.darkMutedColor
+        : PaletteColor(Colors.grey.shade300, 2);
+    return color;
   }
 
   Future<void> setProduct() async {
@@ -103,8 +110,12 @@ class _GroceriesState extends State<Groceries> {
         isLoading = false;
       });
     } else {
-      users = [];
-      isLoading = false;
+      if (products.isNotEmpty) {
+        setState(() {
+          users = products;
+          isLoading = false;
+        });
+      }
     }
   }
 }

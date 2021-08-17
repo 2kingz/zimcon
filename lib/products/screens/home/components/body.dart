@@ -22,7 +22,7 @@ class Body extends StatelessWidget {
                 .copyWith(fontWeight: FontWeight.bold),
           ),
         ),
-        Categories(),
+        // Categories(),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: kDefultPaddin),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:zimcon/adminDashboard/db/MyProductsData.dart';
 import 'package:zimcon/adminDashboard/manger/editProduct.dart';
 import 'package:zimcon/company_view_products/models/network_image.dart';
@@ -24,17 +25,26 @@ class _MyProductListState extends State<MyProductList>
   @override
   void initState() {
     super.initState();
+    EasyLoading.addStatusCallback((status) {
+      if (status == EasyLoadingStatus.dismiss) {
+        _timer?.cancel();
+      }
+    });
     getMyProducts();
     _controller = AnimationController(vsync: this);
   }
 
   getMyProducts() async {
+    EasyLoading.show(status: "Please wait.");
     try {
       var url = Uri.parse(getVendorProducts);
-      var response = await http.post(url, body: {"user": posterId.toString()});
+      var response =
+          await http.post(url, body: {"poster": posterId.toString()});
       if (response.statusCode == 200) {
+        print(response.body);
         var data = jsonDecode(response.body);
         setState(() {
+          EasyLoading.showSuccess("Great Done!");
           sliderItems = data;
         });
       } else {
@@ -95,6 +105,8 @@ class _MyProductListState extends State<MyProductList>
           ),
         ),
       );
+    } else {
+      myProducts.clear();
     }
     for (var i = 0; i < sliderItems.length; i++) {
       var item = sliderItems[i];
@@ -151,18 +163,18 @@ class _MyProductListState extends State<MyProductList>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(myProducts[index].cateGory,
-                            style: Theme.of(context)
-                                .textTheme
-                                .title!
-                                .merge(TextStyle(fontSize: 14.0))),
+                        Text(myProducts[index].title!,
+                            style: Theme.of(context).textTheme.headline6!.merge(
+                                TextStyle(
+                                    fontSize: 15.0,
+                                    fontWeight: FontWeight.bold))),
                         SizedBox(
                           height: 5.0,
                         ),
-                        Text(myProducts[index].title!,
+                        Text(myProducts[index].cateGory,
                             style: Theme.of(context)
                                 .textTheme
-                                .subhead!
+                                .caption!
                                 .merge(TextStyle(fontSize: 12.0))),
                         SizedBox(
                           height: 5.0,
@@ -171,10 +183,11 @@ class _MyProductListState extends State<MyProductList>
                     ),
                   ),
                   Text("\$" + myProducts[index].price!,
-                      style: Theme.of(context)
-                          .textTheme
-                          .title!
-                          .merge(TextStyle(fontSize: 16.0, color: Colors.red))),
+                      style: Theme.of(context).textTheme.headline6!.merge(
+                          TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.red,
+                              fontWeight: FontWeight.w700))),
                   IconButton(
                     icon: Icon(Icons.share),
                     onPressed: () {},

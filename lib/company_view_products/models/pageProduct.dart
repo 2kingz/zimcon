@@ -2,28 +2,48 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:zimcon/company_view_products/models/network_image.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:http/http.dart' as http;
 
 class ProducView extends StatefulWidget {
   final List? images;
-
   final index;
-
   const ProducView(this.images, this.index);
-
   @override
   _ProducViewState createState() => _ProducViewState();
 }
 
 class _ProducViewState extends State<ProducView> {
   var isLiked, isInCart = "";
+  PaletteColor? backColor;
+
+  @override
+  void initState() {
+    checkCart(widget.images![widget.index]['Id']);
+    getLike(widget.images![widget.index]['Id']);
+    appbarColor(server + widget.images![widget.index]['app_img']);
+    super.initState();
+  }
+
+  appbarColor(ourimage) async {
+    final PaletteGenerator generator = await PaletteGenerator.fromImageProvider(
+        NetworkImage(ourimage),
+        size: Size(200, 200));
+    var color = generator.darkMutedColor == null
+        ? generator.darkMutedColor
+        : PaletteColor(Colors.grey.shade300, 2);
+    setState(() {
+      backColor = color;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: backColor!.color,
         centerTitle: true,
         elevation: 0,
         title: Text(widget.images![widget.index]['Name']),
@@ -82,19 +102,26 @@ class _ProducViewState extends State<ProducView> {
                         //   color: widget.product.color,
                         // ),
                       ),
-                      child: IconButton(
-                        tooltip: "Like or Dislike the product",
-                        icon: SvgPicture.asset(
-                          "images/icons/heart.svg",
-                          color: isLiked.toString().contains("yes")
-                              ? Colors.pink
-                              : Colors.black,
-                          height: 50,
-                          width: double.infinity,
+                      child: Container(
+                        height: 50,
+                        width: 50,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(50)),
+                        child: IconButton(
+                          tooltip: "Like or Dislike the product",
+                          icon: SvgPicture.asset(
+                            "images/icons/heart.svg",
+                            color: isLiked.toString().contains("yes")
+                                ? Colors.pink
+                                : Colors.black,
+                            height: 50,
+                            width: double.infinity,
+                          ),
+                          onPressed: () {
+                            likeMyTheProduct(
+                                widget.images![widget.index]['Id']);
+                          },
                         ),
-                        onPressed: () {
-                          likeMyTheProduct(widget.images![widget.index]['Id']);
-                        },
                       ),
                     ),
                     Expanded(
@@ -107,7 +134,8 @@ class _ProducViewState extends State<ProducView> {
                               ? Colors.pink
                               : Colors.black,
                           onPressed: () {
-                            addProductToCart();
+                            addProductToCart(
+                                widget.images![widget.index]['Id']);
                           },
                           child: Text(
                             "Add TO Cart".toUpperCase(),
@@ -122,6 +150,10 @@ class _ProducViewState extends State<ProducView> {
                     ),
                   ]),
                 ),
+                Divider(),
+                Container(
+                    child: Text(widget.images![widget.index]['description'])),
+                Divider(),
               ],
             ),
           ),
@@ -130,44 +162,37 @@ class _ProducViewState extends State<ProducView> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    checkCart(widget.images![widget.index]['Id']);
-    getLike(widget.images![widget.index]['Id']);
-  }
-
   void checkCart(product) async {
     try {
       var url = Uri.parse(checkProductCart);
       var response = await http
           .post(url, body: {"product": product.toString(), "user": user});
-      setState(() {
-        print(response.body);
-        if (response.statusCode == 200) {
-          var data = jsonDecode(response.body);
-          if (data['success'] == "1") {
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        if (data['success'] == "1") {
+          setState(() {
             isInCart = "yes";
-          } else {
+          });
+        } else {
+          setState(() {
             isInCart = "no";
-          }
+          });
         }
-      });
+      }
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
-  addProductToCart() async {
+  addProductToCart(product) async {
     var url = Uri.parse(addToCart);
     var response = await http.post(url, body: {
       "user": user,
-      "product": widget.images![widget.index]['Id'],
+      "product": product,
       "productName": widget.images![widget.index]['Name'],
       "price": widget.images![widget.index]['Price']
     });
-    print(response.body);
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       if (data['success'] == 'DELETED' || data['success'] == 'ADDED') {
@@ -185,9 +210,7 @@ class _ProducViewState extends State<ProducView> {
     var response =
         await http.post(url, body: {"product": preseproduct, "liker": liker});
     if (response.statusCode == 200) {
-      setState(() {
-        getLike(preseproduct);
-      });
+      getLike(preseproduct);
     }
   }
 
@@ -196,17 +219,18 @@ class _ProducViewState extends State<ProducView> {
       var url = Uri.parse(checkProductLike);
       var response = await http
           .post(url, body: {"product": myproduct.toString(), "liker": user});
-      setState(() {
-        print(response.body);
-        if (response.statusCode == 200) {
-          var data = jsonDecode(response.body);
-          if (data['success'] == "1") {
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        if (data['success'] == "1") {
+          setState(() {
             isLiked = "yes";
-          } else {
+          });
+        } else {
+          setState(() {
             isLiked = "no";
-          }
+          });
         }
-      });
+      }
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));

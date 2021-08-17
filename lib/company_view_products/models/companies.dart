@@ -14,12 +14,7 @@ class CompaiesProfiles extends StatefulWidget {
 }
 
 class _CompaiesProfilesState extends State<CompaiesProfiles> {
-  final List<String> sliderItems = [
-    breakfast,
-    burger1,
-    meal,
-    pancake,
-  ];
+  final List<String> sliderItems = [];
 
   List pagesAvailable = [];
   @override
@@ -36,7 +31,6 @@ class _CompaiesProfilesState extends State<CompaiesProfiles> {
       var data = jsonDecode(request.body);
       setState(() {
         pagesAvailable = data;
-        print(pagesAvailable);
       });
     }
   }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:zimcon/adminDashboard/manger/Myproducts.dart';
 import 'package:zimcon/adminDashboard/manger/addProduct.dart';
+import 'package:zimcon/adminDashboard/manger/orders.dart';
 import 'package:zimcon/adminDashboard/manger/vendor.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:http/http.dart' as http;
@@ -45,6 +46,7 @@ class _AdminState extends State<Admin> {
         _timer?.cancel();
       }
     });
+    getGeatecoriies();
   }
 
   getGeatecoriies() async {
@@ -58,6 +60,7 @@ class _AdminState extends State<Admin> {
       if (data != null) {
         List items = data;
         listItem.clear();
+        getSimpleSummery();
         setState(() {
           EasyLoading.showSuccess('Done');
           for (var i = 0; i < items.length; i++) {
@@ -78,7 +81,6 @@ class _AdminState extends State<Admin> {
       var data = jsonDecode(request.body);
       EasyLoading.showSuccess('Great Success!');
       setState(() {
-        getSimpleSummery();
         ordersNumber = data['ordersCal'];
         numberOfProducts = data['ProductCal'];
         generatedRevenue = data['revenueCal'];
@@ -149,7 +151,7 @@ class _AdminState extends State<Admin> {
                   size: 30.0,
                   color: Colors.green,
                 ),
-                label: Text('\$$generatedRevenue',
+                label: Text('$generatedRevenue',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 30.0, color: Colors.green)),
               ),
@@ -256,8 +258,11 @@ class _AdminState extends State<Admin> {
             Divider(),
             ListTile(
               leading: Icon(Icons.check_box),
-              title: Text("New Orders"),
-              onTap: () {},
+              title: Text("New Orders"), //
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => NeOrders()));
+              },
             ),
             Divider(),
             ListTile(
@@ -269,6 +274,14 @@ class _AdminState extends State<Admin> {
             ListTile(
               leading: Icon(Icons.add_circle_outline),
               title: Text("Like Products"),
+              onTap: () {
+                _brandAlert();
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.add_circle_outline),
+              title: Text("Bussiness Hours"),
               onTap: () {
                 _brandAlert();
               },

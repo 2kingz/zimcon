@@ -6,7 +6,6 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zimcon/adminDashboard/db/MyProductsData.dart';
-import 'package:zimcon/company_view_products/models/network_image.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:http/http.dart' as http;
 
@@ -29,8 +28,7 @@ class _EditProductState extends State<EditProduct> {
   TextEditingController item = new TextEditingController();
   bool isItem = false, isPrice = false, isQuantity = false;
   var descriptionm;
-  late String myProductimage, producatCate;
-  late String productId;
+  late String myProductimage, producatCate, productId;
   Timer? _timer;
 
   @override
@@ -53,6 +51,7 @@ class _EditProductState extends State<EditProduct> {
     quantity.text = widget.myProduct.qty;
     myProductimage = widget.myProduct.image;
     producatCate = widget.myProduct.cateGory;
+    description.text = widget.myProduct.description!;
   }
 
   @override
@@ -85,7 +84,8 @@ class _EditProductState extends State<EditProduct> {
                           ],
                           shape: BoxShape.rectangle,
                           image: DecorationImage(
-                              fit: BoxFit.cover, image: myImage()),
+                              fit: BoxFit.contain,
+                              image: myImage(myProductimage)),
                         ),
                       ),
                       Positioned(
@@ -120,9 +120,12 @@ class _EditProductState extends State<EditProduct> {
                 SizedBox(
                   height: 35,
                 ),
-                buildTextField("Item", "Item name", item, isItem),
-                buildTextField("Price", "Item price", price, isPrice),
-                buildTextField("Quantity", "Item qty", quantity, isQuantity),
+                buildTextField(
+                    "Item", "Item name", item, isItem, TextInputType.text),
+                buildTextField("Price", "Item price", price, isPrice,
+                    TextInputType.number),
+                buildTextField("Quantity", "Item qty", quantity, isQuantity,
+                    TextInputType.number),
                 DropdownButton(
                     hint: Text(producatCate.isEmpty
                         ? "Select Item Category"
@@ -153,6 +156,7 @@ class _EditProductState extends State<EditProduct> {
                     maxLength: 200,
                     buildCounter: descriptionm,
                     controller: description,
+                    keyboardType: TextInputType.multiline,
                     decoration: InputDecoration(
                         contentPadding: EdgeInsets.only(bottom: 5),
                         labelText: "Description",
@@ -169,11 +173,15 @@ class _EditProductState extends State<EditProduct> {
                   children: [
                     OutlinedButton(
                       onPressed: () {
-                        File mia = new File(imagePath!.path);
-                        mia.delete();
                         Navigator.pop(context);
+                        showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                                  content: deletItemDialog(context),
+                                ),
+                            barrierDismissible: true);
                       },
-                      child: Text("Discard",
+                      child: Text("Delete",
                           style: TextStyle(
                               fontSize: 15,
                               letterSpacing: 2,
@@ -246,7 +254,6 @@ class _EditProductState extends State<EditProduct> {
       "oldImage": myProductimage,
     }).then((res) {
       if (res.statusCode == 200) {
-        print(res.body);
         var response = jsonDecode(res.body);
         if (response['success'] == "1") {
           setState(() {
@@ -275,7 +282,6 @@ class _EditProductState extends State<EditProduct> {
       "category": producatCate,
     }).then((res) {
       if (res.statusCode == 200) {
-        print(res.body);
         var response = jsonDecode(res.body);
         if (response['success'] == "1") {
           setState(() {
@@ -371,27 +377,31 @@ class _EditProductState extends State<EditProduct> {
                   CropAspectRatioPreset.ratio16x9
                 ],
           androidUiSettings: AndroidUiSettings(
-              toolbarTitle: 'Cropper',
-              toolbarColor: Colors.pinkAccent,
-              toolbarWidgetColor: Colors.white,
-              initAspectRatio: CropAspectRatioPreset.original,
-              lockAspectRatio: false),
+            toolbarTitle: 'Cropper',
+            toolbarColor: Colors.pinkAccent,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+          ),
           iosUiSettings: IOSUiSettings(
             title: 'Cropper',
+            showCancelConfirmationDialog: true,
           ));
       if (croppedFile != null) {
         setState(() {
           imagePath = croppedFile;
         });
+        uploadImage();
       }
     }
   }
 
-  Widget buildTextField(
-      String label, String hint, TextEditingController cont, bool error) {
+  Widget buildTextField(String label, String hint, TextEditingController cont,
+      bool error, TextInputType? key) {
     return Padding(
       padding: EdgeInsets.only(bottom: 30),
       child: TextField(
+        keyboardType: key,
         controller: cont,
         decoration: InputDecoration(
             contentPadding: EdgeInsets.only(bottom: 5),
@@ -405,10 +415,71 @@ class _EditProductState extends State<EditProduct> {
     );
   }
 
-  myImage() {
+  myImage(String productIDfg) {
     if (imagePath != null) {
       return FileImage(imagePath!);
     }
-    return PNetworkImage(myProductimage);
+    return NetworkImage(
+      server + productIDfg,
+    );
+  }
+
+  deletItemDialog(BuildContext context) {
+    return Container(
+      height: 90,
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+      child: Column(
+        children: <Widget>[
+          Text(
+            "Do You wish to delete item?",
+            style: TextStyle(fontSize: 12.0),
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          Row(
+            children: <Widget>[
+              TextButton.icon(
+                  onPressed: () {
+                    deleteItem(productId);
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.camera),
+                  label: Text("YES")),
+              TextButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.image),
+                  label: Text("NO"))
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Future<void> deleteItem(String productId) async {
+    EasyLoading.show(status: "Please wait...");
+    try {
+      var url = Uri.parse(deleteVendorItem);
+      var request = await http.post(url, body: {"product": productId});
+      if (request.statusCode == 200) {
+        var data = jsonDecode(request.body);
+        if (data['success'] == "1") {
+          EasyLoading.showSuccess(data['message']);
+        } else {
+          EasyLoading.showError(data['message']);
+        }
+      } else {
+        EasyLoading.showError("ERROR " +
+            request.statusCode.toString() +
+            " : something went wrong.");
+      }
+    } catch (e) {
+      EasyLoading.showToast(e.toString());
+    }
+    EasyLoading.dismiss();
   }
 }

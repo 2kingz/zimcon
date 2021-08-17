@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-//import 'package:zimcon/dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zimcon/dashboard.dart';
@@ -149,7 +148,7 @@ class InitState extends State<LoginScreen> {
                       Icons.verified_user_outlined,
                       color: Color(0xffF51167),
                     ),
-                    hintText: "Enter email",
+                    hintText: "Enter Username",
                     errorStyle: TextStyle(
                         color: Colors.redAccent, height: 0, fontSize: 10),
                     errorBorder: InputBorder.none,

@@ -28,8 +28,10 @@ String getProducturl = server + "API/zimcon/productQtyinCart.php";
 
 String subbmitOrdeUri = server + "API/zimcon/cart/place_order.php";
 String categoryUrl = server + "API/zimcon/vendor/get_categories.php";
+
 String upbloadProduct = server + "API/zimcon/vendor/upload.php";
 String updateProduct = server + "API/zimcon/vendor/update_product.php";
+String deleteVendorItem = server + "";
 
 String getCateList = server + "API/zimcon/vendor/get_comapny_category.php";
 String getPagesList = server + "API/zimcon/pages/getCompanies.php";
@@ -52,4 +54,7 @@ List<String> categories = [
 ];
 String cartTotal = "";
 String posterId = ""; //This will only be used on the vendor side...
-String vendorCate = "";// And this one also
+String vendorCate = ""; // And this one also
+
+String aboutApp =
+    "Our company is a start-up electronic marketing platform in Kadoma, Zimbabwe, providing ease of access to accommodation such as lodges, residential and commercial sector, available food and restaurant outlets, hardware and fashion outlets in and around Kadoma. The main agenda of ZimCon is to provide a convenience shopping experience and delivery service for both individuals and companies at any time of the day in the comfort of their homes and offices. Also during this time of the pandemic ZimCon will play an essential service in reducing people’s movements hence helping enforcing lockdown regulations and the spread of the virus.";

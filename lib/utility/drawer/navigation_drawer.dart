@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zimcon/aboutApp.dart';
 import 'package:zimcon/cart/cart_screen.dart';
 import 'package:zimcon/login_screen.dart';
 import 'package:zimcon/products/groceries.dart';
@@ -184,6 +185,9 @@ class NavigationDrawerWidget extends StatelessWidget {
         break;
       case 2:
         navigateTo(Groceries());
+        break;
+      case 3:
+        navigateTo(AboutApp());
         break;
       case 4:
         logoutUser(context);

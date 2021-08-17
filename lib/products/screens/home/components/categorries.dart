@@ -31,9 +31,10 @@ class _CategoriesState extends State<Categories> {
   Widget buildCategory(int index) {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          selectedIndex = index;
-          mySelectedIndex = selectedIndex;
+        selectedIndex = index;
+        mySelectedIndex = selectedIndex;
+
+        Groceries().createState().setState(() {
           Groceries().getMyProduct();
         });
       },

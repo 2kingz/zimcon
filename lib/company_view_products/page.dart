@@ -16,7 +16,7 @@ class VendorPages extends StatefulWidget {
 }
 
 class _VendorPagesState extends State<VendorPages> {
-  List images = [];
+  List companyProducts = [];
 
   @override
   void initState() {
@@ -26,17 +26,15 @@ class _VendorPagesState extends State<VendorPages> {
 
   void getThisPageProducts() async {
     var pageId = widget.pagesAvailable['Id'];
-    print(pageId);
     var url = Uri.parse(getPageProducts);
     var response = await http.post(url, body: {
       "poster": pageId,
       "category": productCategories,
     });
-    print(response.body);
     if (response.statusCode == 200) {
       var items = json.decode(response.body);
       setState(() {
-        images = items;
+        companyProducts = items;
       });
     } else {}
   }
@@ -101,7 +99,7 @@ class _VendorPagesState extends State<VendorPages> {
                 (BuildContext context, int index) {
                   return _buildItems(index, context);
                 },
-                childCount: images.length,
+                childCount: companyProducts.length,
               ),
             ),
           ),
@@ -146,7 +144,7 @@ class _VendorPagesState extends State<VendorPages> {
           //     (BuildContext context, int index) {
           //       return _buildListItem(index);
           //     },
-          //     childCount: images.length,
+          //     childCount: companyProducts.length,
           //   ),
           // )
         ],
@@ -163,7 +161,7 @@ class _VendorPagesState extends State<VendorPages> {
           autoplay: true,
           itemBuilder: (BuildContext context, int index) {
             return new PNetworkImage(
-              server + images[index]['app_img'],
+              server + companyProducts[index]['app_img'],
               fit: BoxFit.cover,
             );
           },
@@ -183,8 +181,8 @@ class _VendorPagesState extends State<VendorPages> {
           onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => ProducView(
-                      images, index))), //images_onTapItem(context, index),
+                  builder: (context) => ProducView(companyProducts,
+                      index))), //companyProducts_onTapItem(context, index),
           child: Column(
             children: <Widget>[
               Expanded(
@@ -192,7 +190,7 @@ class _VendorPagesState extends State<VendorPages> {
                       transitionOnUserGestures: true,
                       tag: "item$index",
                       child: PNetworkImage(
-                        server + images[index]['app_img'],
+                        server + companyProducts[index]['app_img'],
                         fit: BoxFit.contain,
                         height: 200,
                         width: double.infinity,
@@ -201,14 +199,14 @@ class _VendorPagesState extends State<VendorPages> {
                 height: 10.0,
               ),
               Text(
-                images[index]['Name'],
+                companyProducts[index]['Name'],
                 softWrap: true,
               ),
               SizedBox(
                 height: 10.0,
               ),
               Text(
-                '\$' + images[index]["Price"],
+                '\$' + companyProducts[index]["Price"],
                 style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
@@ -229,14 +227,15 @@ class _VendorPagesState extends State<VendorPages> {
             child: ListTile(
               leading: CircleAvatar(
                 radius: 40,
-                backgroundImage: NetworkImage(images[index]['app_img']),
+                backgroundImage:
+                    NetworkImage(companyProducts[index]['app_img']),
               ),
               title: Text(
                 'Top Quality fashion item',
                 softWrap: true,
               ),
               subtitle: Text(
-                images[index]['Price'],
+                companyProducts[index]['Price'],
                 style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
