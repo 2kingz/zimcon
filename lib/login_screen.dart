@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zimcon/dashboard.dart';
 import 'package:zimcon/signup_screen.dart';
 import 'package:zimcon/url/urlData.dart';
@@ -31,9 +32,9 @@ class InitState extends State<LoginScreen> {
     });
   }
 
-  Future<void> login() async {
+  login() async {
+    EasyLoading.show(status: "Please wait.");
     try {
-      EasyLoading.show(status: "Please wait.");
       var url = Uri.parse(loginUrl);
       final response = await http.post(url, body: {
         "username": username.text,
@@ -74,8 +75,6 @@ class InitState extends State<LoginScreen> {
               content:
                   Text("Server Response : " + data['message'].toString())));
         }
-      } else {
-        print("no it did not work");
       }
     } catch (e) {
       ScaffoldMessenger.of(context)
@@ -195,9 +194,7 @@ class InitState extends State<LoginScreen> {
               alignment: Alignment.centerRight,
               child: GestureDetector(
                 child: Text("Forget Password?"),
-                onTap: () => {
-                  //Open foorget password screen.
-                },
+                onTap: () => {launch('https://zimcon.store/password')},
               ),
             ),
             TextButton(
@@ -209,7 +206,6 @@ class InitState extends State<LoginScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text("Fill the required fields pass")));
                   } else {
-                    print("login in");
                     login();
                   }
                 })

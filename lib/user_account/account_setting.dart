@@ -71,6 +71,12 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     fetchUser();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    EasyLoading.dismiss();
+  }
+
   Future<void> fetchUser() async {
     EasyLoading.showInfo("Loading your infor");
     SharedPreferences data = await SharedPreferences.getInstance();
@@ -336,8 +342,8 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
       );
 
   updateMyBasicInfor() async {
+    EasyLoading.show(status: "Please wait.");
     try {
-      EasyLoading.show(status: "Please wait.");
       var url = Uri.parse(updateGen);
       var request = await http.post(url, body: {
         "user": user.toString(),
@@ -499,7 +505,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
       if (request.statusCode == 200) {
         var response = jsonDecode(request.body);
         if (response['success'] == "1") {
-          EasyLoading.showSuccess("Great Success");
+          EasyLoading.showSuccess("Great! Success");
           SharedPreferences data = await SharedPreferences.getInstance();
           data.setString("street", house.text);
           data.setString("loc", location.text);
@@ -550,8 +556,8 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     if (pickedFile != null) {
       File? croppedFile = await ImageCropper.cropImage(
           sourcePath: pickedFile.path,
-          maxHeight: 1028,
-          maxWidth: 1028,
+          maxHeight: 720,
+          maxWidth: 720,
           compressFormat: ImageCompressFormat.jpg,
           aspectRatioPresets: Platform.isAndroid
               ? [
@@ -599,14 +605,18 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
         "image": base64Image,
         "name": fileName,
         "user": user.toString(),
+        "oldImage": propic
       });
       if (res.statusCode == 200) {
         var response = jsonDecode(res.body);
         if (response['success'] == "1") {
+          print(response);
           SharedPreferences data = await SharedPreferences.getInstance();
           data.setString("propic", response['pic'].toString());
           data.reload();
-          this.checkVar();
+          setState(() {
+            this.checkVar();
+          });
           EasyLoading.showSuccess("Image is uploaded thank you.");
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

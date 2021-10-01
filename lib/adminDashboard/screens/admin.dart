@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:zimcon/adminDashboard/manger/Myproducts.dart';
 import 'package:zimcon/adminDashboard/manger/addProduct.dart';
-import 'package:zimcon/adminDashboard/manger/orders.dart';
+import 'package:zimcon/adminDashboard/manger/MyRequestorders.dart';
 import 'package:zimcon/adminDashboard/manger/vendor.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:http/http.dart' as http;
@@ -23,7 +23,6 @@ class _AdminState extends State<Admin> {
   MaterialColor notActive = Colors.grey;
   TextEditingController categoryController = TextEditingController();
   TextEditingController brandController = TextEditingController();
-  GlobalKey<FormState> _brandFormKey = GlobalKey();
 
   TextEditingController item = TextEditingController();
 
@@ -51,50 +50,63 @@ class _AdminState extends State<Admin> {
 
   getGeatecoriies() async {
     EasyLoading.show(status: 'Please hold a sec...');
-    var uri = Uri.parse(categoryUrl);
-    var request =
-        await http.post(uri, body: {"vendor_cate": vendorCate.toString()});
-    print(request.body);
-    if (request.statusCode == 200) {
-      var data = jsonDecode(request.body);
-      if (data != null) {
-        List items = data;
-        listItem.clear();
-        getSimpleSummery();
-        setState(() {
-          EasyLoading.showSuccess('Done');
-          for (var i = 0; i < items.length; i++) {
-            listItem.add(items[i]["Category_Name"]);
-          }
-        });
+    try {
+      var uri = Uri.parse(categoryUrl);
+      var request =
+          await http.post(uri, body: {"vendor_cate": vendorCate.toString()});
+      if (request.statusCode == 200) {
+        var data = jsonDecode(request.body);
+        if (data != null) {
+          List items = data;
+          listItem.clear();
+          getSimpleSummery();
+          setState(() {
+            EasyLoading.showSuccess('Done');
+            for (var i = 0; i < items.length; i++) {
+              listItem.add(items[i]["Category_Name"]);
+            }
+          });
+        }
       }
+    } catch (e) {
+      print(e);
+      EasyLoading.showError("ERROR : Could not make contact with server");
     }
     EasyLoading.dismiss();
   }
 
   void getSimpleSummery() async {
     EasyLoading.show(status: 'Please wait loading...');
-    var url = Uri.parse(getSummeryurl);
-    var request = await http.post(url, body: {"user": user.toString()});
-    print(request.body);
-    if (request.statusCode == 200) {
-      var data = jsonDecode(request.body);
-      EasyLoading.showSuccess('Great Success!');
-      setState(() {
-        ordersNumber = data['ordersCal'];
-        numberOfProducts = data['ProductCal'];
-        generatedRevenue = data['revenueCal'];
-        EasyLoading.dismiss();
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          duration: Duration(seconds: 2),
-          action: SnackBarAction(
-            label: "Reload",
-            onPressed: () => getSimpleSummery(),
-          ),
-          content: Text("Response :" + request.statusCode.toString())));
+    try {
+      var url = Uri.parse(getSummeryurl);
+      var request = await http.post(url, body: {"user": posterId.toString()});
+      if (request.statusCode == 200) {
+        var data = jsonDecode(request.body);
+        EasyLoading.showSuccess('Great Success!');
+        setState(() {
+          ordersNumber = data['ordersCal'];
+          numberOfProducts = data['ProductCal'];
+          generatedRevenue = data['revenueCal'];
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            duration: Duration(seconds: 2),
+            action: SnackBarAction(
+              label: "Reload",
+              onPressed: () => getSimpleSummery(),
+            ),
+            content: Text("Response :" + request.statusCode.toString())));
+      }
+    } catch (e) {
+      EasyLoading.showError("ERROR : Could not make contact with server");
     }
+    EasyLoading.dismiss();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    EasyLoading.dismiss();
   }
 
   @override
@@ -234,7 +246,6 @@ class _AdminState extends State<Admin> {
             ),
           ],
         );
-        break;
       case Page.manage:
         return ListView(
           children: <Widget>[
@@ -261,31 +272,30 @@ class _AdminState extends State<Admin> {
               title: Text("New Orders"), //
               onTap: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => NeOrders()));
+                    MaterialPageRoute(builder: (context) => MeOrderRequest()));
               },
             ),
-            Divider(),
-            ListTile(
-              leading: Icon(Icons.category),
-              title: Text("Deliveries"),
-              onTap: () {},
-            ),
-            Divider(),
-            ListTile(
-              leading: Icon(Icons.add_circle_outline),
-              title: Text("Like Products"),
-              onTap: () {
-                _brandAlert();
-              },
-            ),
-            Divider(),
-            ListTile(
-              leading: Icon(Icons.add_circle_outline),
-              title: Text("Bussiness Hours"),
-              onTap: () {
-                _brandAlert();
-              },
-            ),
+            // Divider(),
+            // ListTile(
+            //   leading: Icon(Icons.category),
+            //   title: Text("Deliveries"),
+            //   onTap: () {},
+            // ),
+            // Divider(),
+            // ListTile(
+            //   leading: Icon(Icons.add_circle_outline),
+            //   title: Text("Like Products"),
+            //   onTap: () {
+            //     _brandAlert();
+            //   },
+            // ),
+            // Divider(),
+            // ListTile(
+            //   leading: Icon(Icons.timer),
+            //   title: Text("Bussiness Hours"),
+            //   onTap: () {
+            //   },
+            // ),
             Divider(),
             ListTile(
               leading: Icon(Icons.verified_user),
@@ -293,48 +303,27 @@ class _AdminState extends State<Admin> {
               onTap: () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => ManageVendorAcc()));
-              },
+              }, //66+6+4:76
+            ),
+            Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "VERIFIED BUSINESS : ",
+                  style: TextStyle(fontSize: 17.5, fontWeight: FontWeight.w800),
+                ),
+                Icon(
+                  Icons.verified,
+                  color: Colors.blue,
+                )
+              ],
             ),
             Divider(),
           ],
         );
-        break;
       default:
         return Container();
     }
-  }
-
-  void _brandAlert() {
-    var alert = new AlertDialog(
-      content: Form(
-        key: _brandFormKey,
-        child: TextFormField(
-          controller: brandController,
-          validator: (value) {
-            if (value!.isEmpty) {
-              return 'category cannot be empty';
-            }
-          },
-          decoration: InputDecoration(hintText: "add brand"),
-        ),
-      ),
-      actions: <Widget>[
-        FlatButton(
-            onPressed: () {
-              if (brandController.text.isNotEmpty) {}
-              print('brand added');
-
-              Navigator.pop(context);
-            },
-            child: Text('ADD')),
-        FlatButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('CANCEL')),
-      ],
-    );
-
-    showDialog(context: context, builder: (_) => alert);
   }
 }

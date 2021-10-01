@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:http/http.dart' as http;
 import 'package:zimcon/url/urlData.dart';
 
@@ -34,33 +35,35 @@ class InitState extends State<SignUpScreen> {
   Future<void> doRegister() async {
     EasyLoading.show(status: "Please wait...");
     var url = Uri.parse(register);
-    print(url);
-    print(fpassword.text.toString() + cpassword.text.toString());
-    if (fpassword.text.toString() == cpassword.text.toString()) {
-      final response = await http.post(url, body: {
-        "name": name.text,
-        "email": email.text,
-        "phone": phone.text,
-        "username": username.text,
-        "fpassword": fpassword.text
-      });
-      if (response.statusCode == 200) {
-        print(response.body.toString());
-        var data = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("Response : " + data['message'].toString())));
-        if (data['success'].toString() == "1") {
-          EasyLoading.showToast("Gongrats you're now a member");
-          Navigator.pop(context);
+    try {
+      if (fpassword.text.toString() == cpassword.text.toString()) {
+        final response = await http.post(url, body: {
+          "name": name.text,
+          "email": email.text,
+          "phone": phone.text,
+          "username": username.text,
+          "fpassword": fpassword.text
+        });
+        if (response.statusCode == 200) {
+          print(response.body.toString());
+          var data = jsonDecode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("Response : " + data['message'].toString())));
+          if (data['success'] == "1") {
+            EasyLoading.showToast("Gongrats you're now a member");
+            Navigator.pop(context);
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                  "Error Response code " + response.statusCode.toString())));
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content:
-                Text("Error Response code " + response.statusCode.toString())));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("password do not match...")));
       }
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("password do not match...")));
+    } catch (e) {
+      EasyLoading.dismiss();
     }
     EasyLoading.dismiss();
   }
@@ -297,7 +300,7 @@ class InitState extends State<SignUpScreen> {
                   children: [
                     Text("You are agree with "),
                     GestureDetector(
-                      onTap: () => {Navigator.pop(context)},
+                      onTap: () => {termsPage()},
                       child: Text(
                         "Terms and Conditions",
                         style: TextStyle(color: Color(0xffF51167)),
@@ -373,5 +376,18 @@ class InitState extends State<SignUpScreen> {
         ),
       ),
     );
+  }
+
+  termsPage() async {
+    await FlutterWebBrowser.openWebPage(
+        url:
+            "https://github.com/2kingz/zimcon-terms-condtions/blob/main/terms-and-conditions-privacy-policy.md",
+        customTabsOptions: CustomTabsOptions(
+          showTitle: true,
+          toolbarColor: Colors.pinkAccent,
+          addDefaultShareMenuItem: true,
+          navigationBarColor: Colors.pinkAccent,
+          urlBarHidingEnabled: true,
+        ));
   }
 }

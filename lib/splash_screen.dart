@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zimcon/dashboard.dart';
 import 'package:zimcon/login_screen.dart';
+import 'package:zimcon/main.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -14,8 +16,14 @@ class InitState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    configLoading();
     startTime();
-    //check__login_state();
+  }
+
+  @override
+  void dispose() {
+    EasyLoading.dismiss();
+    super.dispose();
   }
 
   startTime() async {

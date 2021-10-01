@@ -11,8 +11,6 @@ class PNetworkImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CachedNetworkImage(
-      fadeInDuration: Duration(seconds: 2),
-      fadeOutCurve: Curves.bounceIn,
       imageUrl: image,
       errorWidget: (context, url, error) => Image.asset(
         'images/image_not_found.jpg',

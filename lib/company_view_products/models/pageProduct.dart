@@ -17,14 +17,14 @@ class ProducView extends StatefulWidget {
 
 class _ProducViewState extends State<ProducView> {
   var isLiked, isInCart = "";
-  PaletteColor? backColor;
+  late PaletteColor backColor;
 
   @override
   void initState() {
+    super.initState();
     checkCart(widget.images![widget.index]['Id']);
     getLike(widget.images![widget.index]['Id']);
-    appbarColor(server + widget.images![widget.index]['app_img']);
-    super.initState();
+    //appbarColor(server + widget.images![widget.index]['app_img']);
   }
 
   appbarColor(ourimage) async {
@@ -35,7 +35,7 @@ class _ProducViewState extends State<ProducView> {
         ? generator.darkMutedColor
         : PaletteColor(Colors.grey.shade300, 2);
     setState(() {
-      backColor = color;
+      backColor = color!;
     });
   }
 
@@ -43,7 +43,7 @@ class _ProducViewState extends State<ProducView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: backColor!.color,
+        backgroundColor: Colors.grey,
         centerTitle: true,
         elevation: 0,
         title: Text(widget.images![widget.index]['Name']),
@@ -160,6 +160,11 @@ class _ProducViewState extends State<ProducView> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   void checkCart(product) async {

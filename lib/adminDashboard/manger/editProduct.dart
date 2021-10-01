@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zimcon/adminDashboard/db/MyProductsData.dart';
 import 'package:zimcon/url/urlData.dart';
-import 'package:http/http.dart' as http;
 
 class EditProduct extends StatefulWidget {
   final MyProducts myProduct;
@@ -29,6 +30,7 @@ class _EditProductState extends State<EditProduct> {
   bool isItem = false, isPrice = false, isQuantity = false;
   var descriptionm;
   late String myProductimage, producatCate, productId;
+
   Timer? _timer;
 
   @override
@@ -171,55 +173,48 @@ class _EditProductState extends State<EditProduct> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    OutlinedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                                  content: deletItemDialog(context),
-                                ),
-                            barrierDismissible: true);
-                      },
-                      child: Text("Delete",
-                          style: TextStyle(
-                              fontSize: 15,
-                              letterSpacing: 2,
-                              color: Colors.grey)),
-                      style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 50),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50))),
-                    ),
+                    // OutlinedButton(
+                    //   onPressed: () {
+                    //     showDialog(
+                    //         context: context,
+                    //         builder: (_) => AlertDialog(
+                    //               content: deletItemDialog(context),
+                    //             ),
+                    //         barrierDismissible: true);
+                    //     Navigator.pop(context);
+                    //   },
+                    //   child: Text("Delete",
+                    //       style: TextStyle(
+                    //           fontSize: 15,
+                    //           letterSpacing: 2,
+                    //           color: Colors.grey)),
+                    //   style: OutlinedButton.styleFrom(
+                    //       padding: EdgeInsets.symmetric(horizontal: 50),
+                    //       shape: RoundedRectangleBorder(
+                    //           borderRadius: BorderRadius.circular(50))),
+                    // ),
                     ElevatedButton(
                       onPressed: () {
-                        setState(() {
-                          if (imagePath != null || myProductimage.isNotEmpty) {
-                            item.text.isEmpty ? isItem = true : isItem = false;
-                            price.text.isEmpty
-                                ? isPrice = true
-                                : isPrice = false;
-                            quantity.text.isEmpty
-                                ? isQuantity = true
-                                : isQuantity = false;
-                            if (isItem == true ||
-                                isPrice == true ||
-                                isQuantity == true) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(
-                                          "Please fill the blank fields.")));
-                            } else {
-                              uPdateProduct();
-                            }
+                        item.text.isEmpty ? isItem = true : isItem = false;
+                        price.text.isEmpty ? isPrice = true : isPrice = false;
+                        quantity.text.isEmpty
+                            ? isQuantity = true
+                            : isQuantity = false;
+                        if (isItem == true ||
+                            isPrice == true ||
+                            isQuantity == true) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text("Please fill the blank fields.")));
+                        } else {
+                          if (productId == "" || productId.isEmpty) {
+                            EasyLoading.showToast("No product selected");
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text("Product image is requred.")));
+                            uPdateProduct();
                           }
-                        });
+                        }
                       },
                       child: Text(
-                        "Save",
+                        "SAVE CHANGES",
                         style: TextStyle(
                             fontSize: 15,
                             letterSpacing: 2,
@@ -242,60 +237,56 @@ class _EditProductState extends State<EditProduct> {
     );
   }
 
-  void uploadImage() {
-    EasyLoading.show(status: "Please wait uploading image");
+  uploadImage() async {
     String base64Image = base64Encode(imagePath!.readAsBytesSync());
     String fileName = imagePath!.path.split("/").last;
-    final phpEndPoint = Uri.parse(updateProduct);
-    http.post(phpEndPoint, body: {
+    var response = await http.post(Uri.parse(updateProduct), body: {
       "product": productId,
       "image": base64Image,
       "name": fileName,
-      "oldImage": myProductimage,
-    }).then((res) {
-      if (res.statusCode == 200) {
-        var response = jsonDecode(res.body);
-        if (response['success'] == "1") {
-          setState(() {
-            imagePath!.delete();
-            imagePath = null;
-            fileName = "";
-          });
-        }
-        EasyLoading.showSuccess(response['message'].toString());
-      }
-    }).catchError((err) {
-      print(err);
+      "oldImage": myProductimage
     });
-    EasyLoading.dismiss();
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(response.statusCode.toString())));
+    if (response.statusCode == 200) {
+      var date = jsonDecode(response.body);
+      if (date['success'] == "1") {
+        print(date.toString());
+        myImage(date['data']);
+        EasyLoading.showSuccess("Image is uploaded thank you.");
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(date['message'].toString())));
+      }
+    }
   }
 
-  void uPdateProduct() {
+  Future<void> uPdateProduct() async {
     EasyLoading.show(status: "Please wait saving changes");
-    final phpEndPoint = Uri.parse(updateProduct);
-    http.post(phpEndPoint, body: {
+    var response = await http.post(Uri.parse(updateProductInfo), body: {
       "product": productId,
       "item": item.text,
       "price": price.text,
       "qty": quantity.text,
       "description": description.text,
-      "category": producatCate,
-    }).then((res) {
-      if (res.statusCode == 200) {
-        var response = jsonDecode(res.body);
-        if (response['success'] == "1") {
-          setState(() {
-            item.text = "";
-            price.text = "";
-            quantity.text = "";
-            description.text = "";
-          });
-        }
-        EasyLoading.showSuccess(response['message']);
-      }
-    }).catchError((err) {
-      print(err);
+      "category": producatCate
     });
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      if (data['success'] == "1") {
+        setState(() {
+          productId = "";
+          item.text = "";
+          price.text = "";
+          quantity.text = "";
+          description.text = "";
+        });
+      }
+      EasyLoading.showSuccess(data['message']);
+    } else {
+      EasyLoading.showSuccess(
+          "Response error code " + response.statusCode.toString());
+    }
     EasyLoading.dismiss();
   }
 
@@ -355,10 +346,9 @@ class _EditProductState extends State<EditProduct> {
     if (pickedFile != null) {
       File? croppedFile = await ImageCropper.cropImage(
           sourcePath: pickedFile.path,
-          maxHeight: 4160,
-          maxWidth: 4160,
+          maxHeight: 1080,
+          maxWidth: 1080,
           compressFormat: ImageCompressFormat.jpg,
-          compressQuality: 100,
           aspectRatioPresets: Platform.isAndroid
               ? [
                   CropAspectRatioPreset.square,
@@ -377,21 +367,23 @@ class _EditProductState extends State<EditProduct> {
                   CropAspectRatioPreset.ratio16x9
                 ],
           androidUiSettings: AndroidUiSettings(
-            toolbarTitle: 'Cropper',
+            toolbarTitle: 'Crop Image',
             toolbarColor: Colors.pinkAccent,
             toolbarWidgetColor: Colors.white,
             initAspectRatio: CropAspectRatioPreset.original,
             lockAspectRatio: false,
           ),
           iosUiSettings: IOSUiSettings(
-            title: 'Cropper',
+            title: 'Crop Image',
             showCancelConfirmationDialog: true,
           ));
-      if (croppedFile != null) {
+      if (croppedFile!.path.isNotEmpty) {
+        EasyLoading.show(status: "Please wait uploading image");
         setState(() {
           imagePath = croppedFile;
+          uploadImage();
         });
-        uploadImage();
+        EasyLoading.dismiss();
       }
     }
   }
@@ -445,13 +437,13 @@ class _EditProductState extends State<EditProduct> {
                     deleteItem(productId);
                     Navigator.pop(context);
                   },
-                  icon: Icon(Icons.camera),
+                  icon: Icon(Icons.check),
                   label: Text("YES")),
               TextButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  icon: Icon(Icons.image),
+                  icon: Icon(Icons.undo),
                   label: Text("NO"))
             ],
           )

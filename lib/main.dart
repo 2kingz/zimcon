@@ -5,8 +5,8 @@ import 'package:zimcon/splash_screen.dart';
 import 'package:zimcon/utility/drawer/provider/navigation_provider.dart';
 
 void main() {
-  runApp(MyApp());
   configLoading();
+  runApp(MyApp());
 }
 
 void configLoading() {
@@ -16,10 +16,10 @@ void configLoading() {
     ..loadingStyle = EasyLoadingStyle.dark
     ..indicatorSize = 45.0
     ..radius = 10.0
-    ..progressColor = Colors.yellow
-    ..backgroundColor = Colors.green
-    ..indicatorColor = Colors.yellow
-    ..textColor = Colors.yellow
+    ..progressColor = Colors.orangeAccent
+    ..backgroundColor = Colors.pink
+    ..indicatorColor = Colors.orangeAccent
+    ..textColor = Colors.orangeAccent
     ..maskColor = Colors.blue.withOpacity(0.5)
     ..userInteractions = true
     ..dismissOnTap = false;

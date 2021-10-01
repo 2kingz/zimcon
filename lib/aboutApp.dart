@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zimcon/url/urlData.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AboutApp extends StatefulWidget {
   const AboutApp({Key? key}) : super(key: key);
@@ -62,7 +62,11 @@ class _AboutAppState extends State<AboutApp>
             Center(child: Text("#1 Buying and Marketing Online Platform")),
       ),
       TextButton.icon(
-          onPressed: () {}, icon: Icon(Icons.email), label: Text("Feedback")),
+          onPressed: () {
+            launch("mailto:balladsamu@2kingzsoftwares.com");
+          },
+          icon: Icon(Icons.email),
+          label: Text("Feedback")),
       ListTile(
         title: Text("About",
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
@@ -75,9 +79,12 @@ class _AboutAppState extends State<AboutApp>
       TextButton(
           onPressed: () => showAboutDialog(
               context: context,
-              applicationIcon: Image.asset("images/zimcon.ico"),
+              applicationIcon: Image.asset(
+                "images/zimcon.ico",
+                fit: BoxFit.contain,
+              ),
               applicationName: "ZimCon",
-              applicationVersion: "1.2.0"),
+              applicationVersion: "1.0.0"),
           child: Text("About App & Licenses"))
     ]);
   }

@@ -1,20 +1,21 @@
-class MyPage {
+class Companies {
   final String title;
-  String numOfItem;
+  String app_logo;
+  final String Tel;
   final String id;
-  final String price;
-  final String img;
-  String totalPrice;
+  final String Branch;
+  final String email;
+  String addresss, status;
 
-  MyPage(
+  Companies(
       {required this.title,
-      required this.numOfItem,
+      required this.app_logo,
+      required this.Tel,
       required this.id,
-      required this.price,
-      required this.img,
-      required this.totalPrice});
+      required this.Branch,
+      required this.email,
+      required this.addresss,
+      required this.status});
 }
 
-// Demo data for our MyPage
-
-List<MyPage> cartItems = [];
+List<Companies> pagesAvailable = [];

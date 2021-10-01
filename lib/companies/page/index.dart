@@ -13,7 +13,6 @@ class _IndexPageState extends State<IndexPage> {
   bool isLoading = false;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     this.fetchUser();
   }

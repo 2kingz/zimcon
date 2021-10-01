@@ -239,41 +239,42 @@ class _AddProductState extends State<AddProduct> {
 
   void uploadProduct() {
     EasyLoading.show(status: "Uploading product...");
-    print(description.text.toString());
-    String base64Image = base64Encode(imagePath!.readAsBytesSync());
-    String fileName = imagePath!.path.split("/").last;
-    final phpEndPoint = Uri.parse(upbloadProduct);
-    http.post(phpEndPoint, body: {
-      "image": base64Image,
-      "name": fileName,
-      "user": posterId.toString(),
-      "item": item.text,
-      "price": price.text,
-      "qty": quantity.text,
-      "description": description.text,
-      "category": valueChoose,
-    }).then((res) {
-      if (res.statusCode == 200) {
-        print(res.body);
-        var response = jsonDecode(res.body);
-        if (response['success'] == "1") {
-          EasyLoading.showSuccess("Done");
-          setState(() {
-            imagePath = null;
-            fileName = "";
-            item.text = "";
-            price.text = "";
-            quantity.text = "";
-            description.text = "";
-          });
-          getGeatecoriies();
+    try {
+      String base64Image = base64Encode(imagePath!.readAsBytesSync());
+      String fileName = imagePath!.path.split("/").last;
+      final phpEndPoint = Uri.parse(upbloadProduct);
+      http.post(phpEndPoint, body: {
+        "image": base64Image,
+        "name": fileName,
+        "user": posterId.toString(),
+        "item": item.text,
+        "price": price.text,
+        "qty": quantity.text,
+        "description": description.text,
+        "category": valueChoose,
+      }).then((res) {
+        if (res.statusCode == 200) {
+          var response = jsonDecode(res.body);
+          if (response['success'] == "1") {
+            EasyLoading.showSuccess("Done");
+            setState(() {
+              imagePath = null;
+              fileName = "";
+              item.text = "";
+              price.text = "";
+              quantity.text = "";
+              description.text = "";
+            });
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(response['message'].toString())));
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response['message'].toString())));
-      }
-    }).catchError((err) {
-      print(err);
-    });
+      }).catchError((err) {
+        print(err);
+      });
+    } catch (e) {
+      print(e);
+    }
     EasyLoading.dismiss();
   }
 
@@ -333,10 +334,9 @@ class _AddProductState extends State<AddProduct> {
     if (pickedFile != null) {
       File? croppedFile = await ImageCropper.cropImage(
           sourcePath: pickedFile.path,
-          maxHeight: 4160,
-          maxWidth: 4160,
+          maxHeight: 1080,
+          maxWidth: 1080,
           compressFormat: ImageCompressFormat.jpg,
-          compressQuality: 100,
           aspectRatioPresets: Platform.isAndroid
               ? [
                   CropAspectRatioPreset.square,

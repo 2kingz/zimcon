@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zimcon/company_view_products/models/companies.dart';
-import 'package:zimcon/hotels/hotel_pages.dart';
 import 'package:zimcon/products/groceries.dart';
 import 'package:zimcon/url/urlData.dart';
 
@@ -36,12 +35,12 @@ class _GridDashboardState extends State<GridDashboard> {
       cateTitle: "Hardware");
 
   Items item4 = new Items(
-      title: "Lifestyle",
-      subtitle: "Hotel, Lodges e.t.c",
-      event: "",
-      img: "images/lifestyle.png",
-      onPress: HotelBookingPage(),
-      cateTitle: "Hotel");
+      title: "Agriculture",
+      subtitle: "Farming items",
+      event: "2 items",
+      img: "images/agrocate.png",
+      onPress: CompaiesProfiles(),
+      cateTitle: "Agriculture");
 
   Items item5 = new Items(
       title: "Accesories",
@@ -52,12 +51,12 @@ class _GridDashboardState extends State<GridDashboard> {
       cateTitle: "Mobile & Accessories");
 
   Items item6 = new Items(
-      title: "Ranto",
-      subtitle: "Rental houses",
+      title: "Furniture",
+      subtitle: "Kitchenware & e.t.c",
       event: "2 Items",
-      img: "images/favicon.ico",
-      onPress: null,
-      cateTitle: "Rent");
+      img: "images/sofa.png",
+      onPress: CompaiesProfiles(),
+      cateTitle: "Furniture");
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +73,6 @@ class _GridDashboardState extends State<GridDashboard> {
             return GestureDetector(
               onTap: () {
                 productCategories = data.cateTitle;
-                print("Data Stored" + productCategories.toString());
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => data.onPress));
               },

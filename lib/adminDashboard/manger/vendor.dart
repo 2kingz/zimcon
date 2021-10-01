@@ -21,11 +21,20 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
   File? imagePath;
   TextEditingController name = new TextEditingController();
   TextEditingController vaddress = new TextEditingController();
+  TextEditingController phonenumber = new TextEditingController();
   bool isname = false, isvaddress = false;
   String imageLnk = "";
-  var valueChoose;
-  String valueChoose2 = '';
-  List mYlistItem = [];
+  var valueChoose, valueChooseBranch;
+  String valueChoose2 = '', valueChooseBranch2 = '';
+  List mYlistItem = [],
+      myCompBranch = [
+        "Chegutu",
+        "Kadoma",
+        "Harare",
+        "Gweru",
+        "Norton",
+        "Kwekwe"
+      ];
 
   Timer? _timer;
   @override
@@ -42,43 +51,54 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
 
   getGeatecoriies() async {
     EasyLoading.show(status: "Please wait...");
-    var uri = Uri.parse(getCateList);
-    var request = await http.post(uri);
-    print(request.body);
-    if (request.statusCode == 200) {
-      var data = jsonDecode(request.body);
-      if (data != null) {
-        List items = data;
-        mYlistItem.clear();
-        setState(() {
-          EasyLoading.showSuccess("Great Done!");
-          for (var i = 0; i < items.length; i++) {
-            mYlistItem.add(items[i]["Category_Name"]);
-          }
-        });
+    try {
+      var uri = Uri.parse(getCateList);
+      var request = await http.post(uri);
+      if (request.statusCode == 200) {
+        var data = jsonDecode(request.body);
+        if (data != null) {
+          List items = data;
+          mYlistItem.clear();
+          setState(() {
+            EasyLoading.showSuccess("Great Done!");
+            for (var i = 0; i < items.length; i++) {
+              mYlistItem.add(items[i]["Category_Name"]);
+            }
+          });
+        }
       }
+    } catch (e) {
+      EasyLoading.showError("ERROR : Could not make contact with server");
     }
     EasyLoading.dismiss();
   }
 
   void getVendorAccDetails() async {
     EasyLoading.show(status: "Hold a sec!");
-    var uri = Uri.parse(getvendoracc);
-    var request = await http.post(uri, body: {"user": user.toString()});
-    if (request.statusCode == 200) {
-      var data = jsonDecode(request.body);
-      if (data["success"] == "0") {
-        EasyLoading.show(status: data['message']);
-      } else {
-        setState(() {
-          name.text = data['result']['Name'];
-          vaddress.text = data['result']['Address'];
-          imageLnk = server + data['result']['app_logo'];
-          vendorCate = data['result']['Category'];
-          valueChoose2 = vendorCate;
-        });
+    try {
+      var uri = Uri.parse(getvendoracc);
+      var request = await http.post(uri,
+          body: {"user": user.toString()}); //To get the vendor account
+      if (request.statusCode == 200) {
+        var data = jsonDecode(request.body);
+        if (data["success"] == "0") {
+          EasyLoading.show(status: data['message']);
+        } else {
+          setState(() {
+            posterId = data['result']['Id'];
+            name.text = data['result']['Name'];
+            vaddress.text = data['result']['Address'];
+            phonenumber.text = data['result']['Tel'];
+            imageLnk = data['result']['app_logo'];
+            vendorCate = data['result']['Category'];
+            valueChoose2 = vendorCate;
+            valueChooseBranch2 = data['result']['Branch'];
+          });
+        }
       }
-    } else {}
+    } catch (e) {
+      EasyLoading.showError("ERROR : Could not make contact with server");
+    }
     EasyLoading.dismiss();
   }
 
@@ -93,7 +113,7 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
           pinned: true,
           flexibleSpace: FlexibleSpaceBar(
             // title: Text(name.text.isEmpty ? 'NO NAME YET' : name.text),
-            background: PNetworkImage(imageLnk, fit: BoxFit.cover),
+            background: PNetworkImage(server + imageLnk, fit: BoxFit.cover),
           ),
           actions: <Widget>[
             Container(
@@ -150,7 +170,7 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
         ),
         SliverToBoxAdapter(
           child: Container(
-            height: 300,
+            height: 400,
             padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 30.0),
             child: Container(
               child: Column(
@@ -164,6 +184,36 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
                     decoration: InputDecoration(
                         hintText: "Vendor Name", suffixIcon: Icon(Icons.edit)),
                   ),
+                  TextField(
+                    controller: phonenumber,
+                    keyboardType: TextInputType.phone,
+                    enabled: true,
+                    decoration: InputDecoration(
+                        hintText: "Phone e.g. 0700000000",
+                        suffixIcon: Icon(Icons.phone)),
+                  ),
+                  DropdownButton(
+                      hint: Text(valueChooseBranch2.toString().isNotEmpty
+                          ? valueChooseBranch2
+                          : "Select Company Branch"),
+                      isDense: false,
+                      isExpanded: true,
+                      icon: Icon(Icons.arrow_drop_down),
+                      iconSize: 36,
+                      style: TextStyle(color: Colors.black, fontSize: 15),
+                      value: valueChooseBranch,
+                      onChanged: (newValue) {
+                        setState(() {
+                          valueChooseBranch = newValue;
+                          valueChooseBranch2 = valueChooseBranch;
+                        });
+                      },
+                      items: myCompBranch.map((valueItem) {
+                        return DropdownMenuItem(
+                          value: valueItem,
+                          child: Text(valueItem),
+                        );
+                      }).toList()),
                   DropdownButton(
                       hint: Text(valueChoose2.toString().isNotEmpty
                           ? valueChoose2
@@ -214,7 +264,7 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
             mia.delete();
             Navigator.pop(context);
           },
-          child: Text("Discard",
+          child: Text("Discard".toUpperCase(),
               style: TextStyle(
                   fontSize: 15, letterSpacing: 2, color: Colors.grey)),
           style: OutlinedButton.styleFrom(
@@ -227,12 +277,11 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
             if (name.text == "" || vaddress.text == "") {
               ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text("Please fill the blank fields.")));
-            } else {
-              uploadInfor();
             }
+            uploadInfor();
           },
           child: Text(
-            "Upload",
+            "SAVE",
             style:
                 TextStyle(fontSize: 15, letterSpacing: 2, color: Colors.white),
           ),
@@ -307,8 +356,8 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
     if (pickedFile != null) {
       File? croppedFile = await ImageCropper.cropImage(
           sourcePath: pickedFile.path,
-          maxHeight: 4160,
-          maxWidth: 4160,
+          maxHeight: 720,
+          maxWidth: 720,
           compressFormat: ImageCompressFormat.jpg,
           aspectRatioPresets: Platform.isAndroid
               ? [
@@ -345,18 +394,19 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
     }
   }
 
-  void upload() {
-    EasyLoading.show(status: "Please wait...");
-    String base64Image = base64Encode(imagePath!.readAsBytesSync());
-    String fileName = imagePath!.path.split("/").last;
-    final phpEndPoint = Uri.parse(sendVendorBasic);
-    http.post(phpEndPoint, body: {
-      "image": base64Image,
-      "oldImage": imageLnk,
-      "name": fileName,
-      "command": "image",
-      "user": user.toString(),
-    }).then((res) async {
+  void upload() async {
+    try {
+      EasyLoading.show(status: "Please wait...");
+      String base64Image = base64Encode(imagePath!.readAsBytesSync());
+      String fileName = imagePath!.path.split("/").last;
+      final phpEndPoint = Uri.parse(sendVendorBasic);
+      final res = await http.post(phpEndPoint, body: {
+        "image": base64Image,
+        "oldImage": imageLnk,
+        "name": fileName,
+        "command": "image",
+        "user": posterId.toString(),
+      });
       if (res.statusCode == 200) {
         print(res.body);
         var response = jsonDecode(res.body);
@@ -369,35 +419,8 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
         File mia = new File(imagePath!.path);
         mia.delete();
       }
-    }).catchError((err) {
-      print(err);
-    });
-    EasyLoading.dismiss();
-  }
-
-  void uploadInfor() {
-    EasyLoading.show(status: "Please wait.");
-    http.post(Uri.parse(sendVendorBasic), body: {
-      "user": user.toString(),
-      "name": name.text,
-      "address": vaddress.text,
-      "category": valueChoose2,
-      "command": "notImage",
-    }).then((res) {
-      if (res.statusCode == 200) {
-        print(res.body);
-        var response = jsonDecode(res.body);
-        if (response['success'] == "1") {
-          setState(() {
-            getVendorAccDetails();
-          });
-        }
-        EasyLoading.showToast(response['message']);
-      }
-    }).catchError((err) {
-      print(err);
-    });
-    EasyLoading.dismiss();
+      EasyLoading.dismiss();
+    } catch (e) {}
   }
 
   myImage() {
@@ -423,5 +446,37 @@ class _ManageVendorAccState extends State<ManageVendorAcc> {
                 fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
       ),
     );
+  }
+
+  Future<void> uploadInfor() async {
+    try {
+      EasyLoading.show(status: "Please wait...");
+      var url = Uri.parse(sendVendorBasic);
+      final response = await http.post(url, body: {
+        "user": posterId.toString(),
+        "name": name.text,
+        "phone": phonenumber.text,
+        "address": vaddress.text,
+        "category": valueChoose2,
+        "branck": valueChooseBranch2,
+        "command": "notImage"
+      });
+      if (response.statusCode == 200) {
+        print(response.body.toString());
+        var data = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("Response : " + data['message'].toString())));
+        if (data['success'].toString() == "1") {
+          setState(() {
+            getVendorAccDetails();
+          });
+        }
+        EasyLoading.showSuccess(data['message'].toString());
+      }
+      EasyLoading.dismiss();
+    } catch (e) {
+      print(e);
+      EasyLoading.dismiss();
+    }
   }
 }

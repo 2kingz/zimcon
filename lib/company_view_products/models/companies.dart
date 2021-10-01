@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_swiper_null_safety/flutter_swiper_null_safety.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:zimcon/company_view_products/models/company.dart';
 import 'package:zimcon/company_view_products/models/network_image.dart';
 import 'package:zimcon/company_view_products/page.dart';
-import 'package:zimcon/core/assets.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,25 +14,56 @@ class CompaiesProfiles extends StatefulWidget {
 }
 
 class _CompaiesProfilesState extends State<CompaiesProfiles> {
-  final List<String> sliderItems = [];
+  //list pageNotTodisplay = [];
+  List companies = [];
+  late List<Companies> pagesAvailableToDisplay;
 
-  List pagesAvailable = [];
+  Timer? _timer;
+
+  late String searchText;
   @override
   void initState() {
     super.initState();
+    EasyLoading.addStatusCallback((status) {
+      if (status == EasyLoadingStatus.dismiss) {
+        _timer?.cancel();
+      }
+    });
     getPages();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    EasyLoading.dismiss();
+  }
+
   void getPages() async {
+    EasyLoading.show(status: "Please wait loading...");
     var url = Uri.parse(getPagesList);
     var request =
         await http.post(url, body: {"category": productCategories.toString()});
     if (request.statusCode == 200) {
       var data = jsonDecode(request.body);
+      pagesAvailable.clear();
       setState(() {
-        pagesAvailable = data;
+        companies = data;
+        for (var i = 0; i < companies.length; i++) {
+          final item = companies[i];
+          pagesAvailable.add(Companies(
+              title: item["Name"],
+              app_logo: item["app_logo"],
+              Tel: item['Tel'],
+              id: item["Id"],
+              Branch: item["Branch"],
+              email: item["email"],
+              addresss: item["Address"],
+              status: item['State']));
+        }
+        pagesAvailableToDisplay = pagesAvailable;
       });
     }
+    EasyLoading.dismiss();
   }
 
   @override
@@ -53,35 +84,35 @@ class _CompaiesProfilesState extends State<CompaiesProfiles> {
     );
   }
 
-  SliverToBoxAdapter _buildSlider() {
-    return SliverToBoxAdapter(
-      child: Stack(
-        children: <Widget>[
-          Container(
-            height: 200,
-            child: Swiper(
-              itemCount: sliderItems.length,
-              autoplay: true,
-              curve: Curves.easeIn,
-              itemBuilder: (BuildContext context, int index) {
-                return PNetworkImage(sliderItems[index], fit: BoxFit.cover);
-              },
-            ),
-          ),
-          Container(
-            height: 200,
-            color: Colors.black.withOpacity(0.5),
-          ),
-          Positioned(
-            bottom: 20,
-            left: 20,
-            child: Text("Heavy discount on meals today only.",
-                style: TextStyle(color: Colors.white)),
-          )
-        ],
-      ),
-    );
-  }
+  // SliverToBoxAdapter _buildSlider() {
+  //   return SliverToBoxAdapter(
+  //     child: Stack(
+  //       children: <Widget>[
+  //         Container(
+  //           height: 200,
+  //           child: Swiper(
+  //             itemCount: sliderItems.length,
+  //             autoplay: true,
+  //             curve: Curves.easeIn,
+  //             itemBuilder: (BuildContext context, int index) {
+  //               return PNetworkImage(sliderItems[index], fit: BoxFit.cover);
+  //             },
+  //           ),
+  //         ),
+  //         Container(
+  //           height: 200,
+  //           color: Colors.black.withOpacity(0.5),
+  //         ),
+  //         Positioned(
+  //           bottom: 20,
+  //           left: 20,
+  //           child: Text("Heavy discount on meals today only.",
+  //               style: TextStyle(color: Colors.white)),
+  //         )
+  //       ],
+  //     ),
+  // );
+  // }
 
   SliverAppBar _buildAppBar(BuildContext context) {
     return SliverAppBar(
@@ -90,7 +121,7 @@ class _CompaiesProfilesState extends State<CompaiesProfiles> {
               .textTheme
               .bodyText2!
               .merge(TextStyle(color: Colors.black))),
-      iconTheme: IconThemeData(color: Colors.lightGreen),
+      iconTheme: IconThemeData(color: Colors.pinkAccent.shade100),
       automaticallyImplyLeading: false,
       backgroundColor: Colors.white,
       expandedHeight: 130,
@@ -101,19 +132,28 @@ class _CompaiesProfilesState extends State<CompaiesProfiles> {
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Expanded(child: Text("Deliver to")),
-                  IconButton(
-                    icon: Icon(Icons.shopping_cart),
-                    onPressed: () {},
-                  )
-                ],
-              ),
+              // Row(
+              //   children: <Widget>[
+              //     Expanded(child: Text("Deliver to")),
+              //     IconButton(
+              //       icon: Icon(Icons.shopping_cart),
+              //       onPressed: () {},
+              //     )
+              //   ],
+              // ),
               SizedBox(
                 height: 5.5,
               ),
               TextField(
+                onChanged: (text) {
+                  searchText = text.toLowerCase();
+                  setState(() {
+                    pagesAvailable = pagesAvailableToDisplay.where((note) {
+                      var noteTitle = note.title.toLowerCase();
+                      return noteTitle.contains(searchText);
+                    }).toList();
+                  });
+                },
                 decoration: InputDecoration(
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(5.0)),
@@ -163,13 +203,13 @@ class _CompaiesProfilesState extends State<CompaiesProfiles> {
                       height: 110.0,
                       width: double.infinity,
                       child: PNetworkImage(
-                          server + pagesAvailable[index]["app_logo"],
+                          server + pagesAvailable[index].app_logo,
                           fit: BoxFit.cover)),
                 ),
                 SizedBox(
                   height: 15.0,
                 ),
-                Text(pagesAvailable[index]["Name"],
+                Text(pagesAvailable[index].title,
                     style: Theme.of(context)
                         .textTheme
                         .headline6!
@@ -177,7 +217,7 @@ class _CompaiesProfilesState extends State<CompaiesProfiles> {
                 SizedBox(
                   height: 5.0,
                 ),
-                Text(pagesAvailable[index]["Branch"],
+                Text(pagesAvailable[index].Branch,
                     style: Theme.of(context)
                         .textTheme
                         .subhead!
@@ -187,68 +227,6 @@ class _CompaiesProfilesState extends State<CompaiesProfiles> {
           ),
         );
       }, childCount: pagesAvailable.length),
-    );
-  }
-
-  SliverList _buildRecommendedList() {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
-        return Container(
-          padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                  height: 150.0,
-                  width: double.infinity,
-                  child: PNetworkImage(sliderItems[index], fit: BoxFit.cover)),
-              SizedBox(
-                height: 10.0,
-              ),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text("Nepali breakfast",
-                            style: Theme.of(context)
-                                .textTheme
-                                .title!
-                                .merge(TextStyle(fontSize: 14.0))),
-                        SizedBox(
-                          height: 5.0,
-                        ),
-                        Text("Vegetarian, Nepali",
-                            style: Theme.of(context)
-                                .textTheme
-                                .subhead!
-                                .merge(TextStyle(fontSize: 12.0))),
-                        SizedBox(
-                          height: 5.0,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text("ZWL. 180.21",
-                      style: Theme.of(context)
-                          .textTheme
-                          .title!
-                          .merge(TextStyle(fontSize: 16.0, color: Colors.red))),
-                  IconButton(
-                    icon: Icon(Icons.favorite_border),
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.add_shopping_cart),
-                    onPressed: () {},
-                  )
-                ],
-              ),
-            ],
-          ),
-        );
-      }, childCount: sliderItems.length),
     );
   }
 }

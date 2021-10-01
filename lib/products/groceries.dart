@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -29,6 +30,12 @@ class _GroceriesState extends State<Groceries> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    EasyLoading.dismiss();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: productCategories,
@@ -52,8 +59,7 @@ class _GroceriesState extends State<Groceries> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Nothing to display yet \n Check your internet Connection"
-                      .toUpperCase(),
+                  "Please wait".toUpperCase(),
                   style: TextStyle(color: Colors.pink, fontSize: 15.0),
                 )
               ],
@@ -96,26 +102,32 @@ class _GroceriesState extends State<Groceries> {
   }
 
   Future<void> setProduct() async {
+    EasyLoading.show(status: "Please wait");
     setState(() {
       isLoading = true;
     });
-    var mycate = categories[mySelectedIndex];
-    var url = Uri.parse(productsList);
-    var response = await http.post(url,
-        body: {"Category": productCategories, "mycate": mycate.toString()});
-    if (response.statusCode == 200) {
-      var items = json.decode(response.body);
-      setState(() {
-        users = items;
-        isLoading = false;
-      });
-    } else {
-      if (products.isNotEmpty) {
+    try {
+      var mycate = categories[mySelectedIndex];
+      var url = Uri.parse(productsList);
+      var response = await http.post(url,
+          body: {"Category": productCategories, "mycate": mycate.toString()});
+      if (response.statusCode == 200) {
+        var items = json.decode(response.body);
         setState(() {
-          users = products;
+          users = items;
           isLoading = false;
         });
+      } else {
+        if (products.isNotEmpty) {
+          setState(() {
+            users = products;
+            isLoading = false;
+          });
+        }
       }
+    } catch (e) {
+      EasyLoading.showError("ERROR" + e.toString());
     }
+    EasyLoading.dismiss();
   }
 }

@@ -199,7 +199,7 @@ class _CartScreenState extends State<CartScreen> {
                   child: DefaultButton(
                     text: "Check Out",
                     press: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                               builder: (context) => ConfirmOrderPage()));

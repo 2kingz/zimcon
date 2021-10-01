@@ -20,7 +20,7 @@ class _MyProductListState extends State<MyProductList>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   Timer? _timer;
-  late double _progress;
+  // late double _progress;
   List sliderItems = [];
   @override
   void initState() {
@@ -41,7 +41,6 @@ class _MyProductListState extends State<MyProductList>
       var response =
           await http.post(url, body: {"poster": posterId.toString()});
       if (response.statusCode == 200) {
-        print(response.body);
         var data = jsonDecode(response.body);
         setState(() {
           EasyLoading.showSuccess("Great Done!");
@@ -63,7 +62,7 @@ class _MyProductListState extends State<MyProductList>
             label: "Reload",
             onPressed: () => getMyProducts()(),
           ),
-          content: Text("ERROR :" + e.toString())));
+          content: Text("ERROR :Something went wrong ")));
     }
   }
 
@@ -78,7 +77,7 @@ class _MyProductListState extends State<MyProductList>
     return Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text("Products"),
+          title: Text("${sliderItems.length} Product(s)"),
           elevation: 0,
           backgroundColor: Colors.pink,
         ),
@@ -122,7 +121,7 @@ class _MyProductListState extends State<MyProductList>
     return CustomScrollView(
       slivers: <Widget>[
         // _buildAppBar(context),
-        _buildListSectionHeader(context, "Your Product Listings"),
+        _buildListSectionHeader(context, "After Editing Product"),
         _buildRecommendedList()
       ],
     );
@@ -131,12 +130,22 @@ class _MyProductListState extends State<MyProductList>
   SliverToBoxAdapter _buildListSectionHeader(
       BuildContext context, String title) {
     return SliverToBoxAdapter(
-      child: Container(
-        padding: EdgeInsets.only(left: 20.0, top: 20.0),
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.caption,
-        ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Container(
+            padding: EdgeInsets.only(left: 20.0, top: 20.0),
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.caption,
+            ),
+          ),
+          TextButton.icon(
+              onPressed: () => getMyProducts(),
+              icon: Icon(Icons.refresh),
+              label: Text("Reload Products"))
+        ],
       ),
     );
   }
@@ -186,11 +195,24 @@ class _MyProductListState extends State<MyProductList>
                       style: Theme.of(context).textTheme.headline6!.merge(
                           TextStyle(
                               fontSize: 16.0,
-                              color: Colors.red,
+                              color: Colors.green,
                               fontWeight: FontWeight.w700))),
                   IconButton(
-                    icon: Icon(Icons.share),
-                    onPressed: () {},
+                    icon: Icon(
+                      Icons.delete_forever,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                                content: deletItemDialog(
+                                    context,
+                                    myProducts[index].id,
+                                    myProducts[index].image),
+                              ),
+                          barrierDismissible: true);
+                    },
                   ),
                   IconButton(
                     icon: Icon(Icons.edit),
@@ -208,6 +230,67 @@ class _MyProductListState extends State<MyProductList>
           ),
         );
       }, childCount: myProducts.length),
+    );
+  }
+
+  Future<void> deleteItem(String productId, imageProduct) async {
+    EasyLoading.show(status: "Please wait...");
+    try {
+      var url = Uri.parse(deleteVendorItem);
+      var request = await http
+          .post(url, body: {"product": productId, "image": imageProduct});
+      if (request.statusCode == 200) {
+        var data = jsonDecode(request.body);
+        if (data['success'] == "1") {
+          EasyLoading.showSuccess(data['message']);
+        } else {
+          EasyLoading.showError(data['message']);
+        }
+      } else {
+        EasyLoading.showError("ERROR " +
+            request.statusCode.toString() +
+            " : something went wrong.");
+      }
+      getMyProducts();
+    } catch (e) {
+      EasyLoading.showToast(e.toString());
+    }
+    EasyLoading.dismiss();
+  }
+
+  deletItemDialog(BuildContext context, productId, image) {
+    return Container(
+      height: 90,
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+      child: Column(
+        children: <Widget>[
+          Text(
+            "Do You wish to delete item?",
+            style: TextStyle(fontSize: 12.0),
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          Row(
+            children: <Widget>[
+              TextButton.icon(
+                  onPressed: () {
+                    deleteItem(productId, image);
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.check),
+                  label: Text("YES")),
+              TextButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.undo),
+                  label: Text("NO"))
+            ],
+          )
+        ],
+      ),
     );
   }
 }

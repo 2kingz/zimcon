@@ -8,7 +8,18 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: buildAppBar(context),
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          "FOOD & GROCERIES",
+          style: Theme.of(context)
+              .textTheme
+              .headline5!
+              .copyWith(fontWeight: FontWeight.bold),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.white,
+      ), //buildAppBar(context),
       body: Body(),
     );
   }
@@ -20,7 +31,7 @@ class HomeScreen extends StatelessWidget {
       leading: IconButton(
         icon: SvgPicture.asset("images/icons/back.svg"),
         onPressed: () {
-          //Navigator.pop();
+          Navigator.of(context).pop();
         },
       ),
       actions: <Widget>[

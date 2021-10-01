@@ -1,9 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zimcon/adminDashboard/screens/admin.dart';
+import 'package:zimcon/notificationsFiles/notifications.dart';
+import 'package:zimcon/notifyiers/notifications.dart';
 import 'package:zimcon/size_config.dart';
 import 'package:zimcon/url/urlData.dart';
 import 'package:zimcon/utility/drawer/navigation_drawer.dart';
@@ -22,6 +25,8 @@ class HomeState extends State<Home> {
   var email = '';
   var vendor = "";
 
+  List version = [];
+
   Future getUserInformation() async {
     SharedPreferences p = await SharedPreferences.getInstance();
     setState(() {
@@ -34,12 +39,14 @@ class HomeState extends State<Home> {
         getVendorAccDetails();
       }
     });
-    print(name + " " + surname);
   }
 
   void getVendorAccDetails() async {
+    checkVersion();
     var uri = Uri.parse(getvendoracc);
-    var request = await http.post(uri, body: {"user": user.toString()});
+    var request = await http.post(uri, body: {
+      "user": user.toString()
+    }); //User Id is required to get the user from server
     if (request.statusCode == 200) {
       var data = jsonDecode(request.body);
       if (data["success"] == "0") {
@@ -54,15 +61,40 @@ class HomeState extends State<Home> {
     } else {}
   }
 
-  @override
-  void initState() {
-    super.initState();
-    getUserInformation();
+  checkVersion() async {
+    var url = Uri.parse(checkVersionURL);
+    var request = await http.post(url, body: {"current": "1"});
+    if (request.statusCode == 200) {
+      var data = jsonDecode(request.body);
+      if (data['success'] == '1') {
+        setState(() {
+          openBrowser(data["data"]['link']);
+          ScaffoldMessenger(child: Text(data["data"]['message']));
+        });
+      }
+    }
+  }
+
+  openBrowser(urlroute) async {
+    await FlutterWebBrowser.openWebPage(
+        url: urlroute,
+        customTabsOptions: CustomTabsOptions(
+          showTitle: true,
+          toolbarColor: Colors.pinkAccent,
+          addDefaultShareMenuItem: true,
+          navigationBarColor: Colors.pinkAccent,
+          urlBarHidingEnabled: true,
+        ));
   }
 
   @override
-  void setState(VoidCallback fn) {
-    super.setState(fn);
+  void initState() {
+    super.initState();
+    Notifiyiers notifiyiers = Notifiyiers();
+    setState(() {
+      notifiyiers.initMySate();
+    });
+    getUserInformation();
   }
 
   @override
@@ -135,7 +167,12 @@ class HomeState extends State<Home> {
                       "images/zimcon.ico",
                       width: 24,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => MyNotifications()));
+                    },
                   )
                 ],
               ),

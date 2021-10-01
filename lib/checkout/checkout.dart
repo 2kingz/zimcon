@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zimcon/cart/models/Cart.dart';
 import 'package:zimcon/url/urlData.dart';
@@ -17,7 +18,7 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
   String address = "Micheal, Ballad";
   String phone = "0771668748";
   double total = double.parse(double.parse(cartTotal).toStringAsFixed(2));
-  double delivery = 1.20;
+  double delivery = 0.0;
   TextEditingController myPhone = new TextEditingController();
   TextEditingController myAddress = new TextEditingController();
   @override
@@ -25,9 +26,9 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Confirm Order",
+          "Confirm Order".toUpperCase(),
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 17,
           ),
         ),
         centerTitle: true,
@@ -74,7 +75,6 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
   }
 
   Widget _buildBody(BuildContext context) {
-    bool iSselected = false;
     return SingleChildScrollView(
       padding:
           EdgeInsets.only(left: 20.0, right: 20.0, top: 40.0, bottom: 10.0),
@@ -208,7 +208,7 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
           RadioListTile(
             groupValue: true,
             value: true,
-            title: Text("Cash on Delivery"),
+            title: Text("Cash on pickup"),
             onChanged: (dynamic value) {},
           ),
           Container(
@@ -228,35 +228,34 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
   }
 
   submitOrder() async {
-    var url = Uri.parse(subbmitOrdeUri);
-    // print("user"+user+
-    //   "address"+address+
-    //   "phone"+phone+
-    //   "shipping"+"Cash on delivery".toString()+
-    //   "shipp"+delivery+
-    //   "tota"+total.toStringAsFixed(2))
-    var response = await http.post(url, body: {
-      "user": user,
-      "address": address,
-      "phone": phone,
-      "shipping": "Cash on delivery".toString(),
-      "shipp": delivery.toStringAsFixed(2),
-      "tota": total.toStringAsFixed(2),
-      "zip": "00263",
-    });
-
-    print(response.body);
-    if (response.statusCode == 200) {
-      var data = jsonDecode(response.body);
-      if (data["success"] == "1") {
-        cartItems.clear();
-        Navigator.pop(context);
+    EasyLoading.show(status: "Please wait");
+    try {
+      var url = Uri.parse(subbmitOrdeUri);
+      var response = await http.post(url, body: {
+        "user": user,
+        "address": address,
+        "phone": phone,
+        "shipping": "Cash on pickup".toString(),
+        "shipp": delivery.toStringAsFixed(2),
+        "tota": total.toStringAsFixed(2),
+        "zip": "00263",
+      });
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        if (data["success"] == "1") {
+          cartItems.clear();
+          Navigator.pop(context);
+        }
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(data["message"].toString())));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("Error : " + response.statusCode.toString())));
       }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(data["message"].toString())));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error : " + response.statusCode.toString())));
+    } catch (e) {
+      EasyLoading.showToast(e.toString());
+      EasyLoading.dismiss();
     }
+    EasyLoading.dismiss();
   }
 }

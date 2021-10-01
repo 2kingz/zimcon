@@ -4,15 +4,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zimcon/aboutApp.dart';
 import 'package:zimcon/cart/cart_screen.dart';
 import 'package:zimcon/login_screen.dart';
-import 'package:zimcon/products/groceries.dart';
+import 'package:zimcon/userOrders/myOrderList.dart';
 import 'package:zimcon/user_account/account_setting.dart';
 import 'package:zimcon/utility/drawer/data.dart';
 import 'package:zimcon/utility/drawer/model/drawer_item.dart';
 import 'package:zimcon/utility/drawer/provider/navigation_provider.dart';
 
-class NavigationDrawerWidget extends StatelessWidget {
+class NavigationDrawerWidget extends StatefulWidget {
   //this padding controls the icon alinments
-  final padding = EdgeInsets.symmetric(horizontal: 20);
+  @override
+  _NavigationDrawerWidgetState createState() => _NavigationDrawerWidgetState();
+}
+
+class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
+  final padding = EdgeInsets.symmetric(horizontal: 10);
 
   bool userLogOut = false;
 
@@ -30,7 +35,7 @@ class NavigationDrawerWidget extends StatelessWidget {
           child: Column(
             children: [
               Container(
-                  padding: EdgeInsets.symmetric(vertical: 24).add(safeArea),
+                  padding: EdgeInsets.symmetric(vertical: 12).add(safeArea),
                   width: double.infinity,
                   color: Colors.white12,
                   child: buildHeader(isCollapsed)),
@@ -76,6 +81,7 @@ class NavigationDrawerWidget extends StatelessWidget {
           );
         },
       );
+
   Widget builMenuItem(
       {required bool isCollapsed,
       required String text,
@@ -184,7 +190,7 @@ class NavigationDrawerWidget extends StatelessWidget {
         navigateTo(CartScreen());
         break;
       case 2:
-        navigateTo(Groceries());
+        navigateTo(MyOrders());
         break;
       case 3:
         navigateTo(AboutApp());
